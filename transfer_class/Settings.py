@@ -35,7 +35,6 @@ class settings:
             table = table[key]
             options = list(table.keys())
             weight = list(table.values())
-            print(weight)
             critical = random.choices(options, weights = weight)[0]
             rival.info['critical'] = critical
             if rival.info['mem_turn'] == turn:
@@ -50,7 +49,7 @@ class settings:
                     if random.random()<rate:
                         rival.info['mem_turn']=(i+1)
                         break
-            print(rival.info['name'],rival.info['mem_turn'])
+            # print(rival.info['name'],rival.info['mem_turn'])
             
     def set_rival_aim(self,trend,turn,judge_alive_dict):
         for rival in self.rival_list:

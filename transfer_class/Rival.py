@@ -50,7 +50,7 @@ class rival():
                 aim_color = trend_list[aim_trend-1]
                 if judge_alive_dict[aim_color]:
                     self.info['aim'] = aim_color
-                    print('aim:'+aim_color)
+                    # print('aim:'+aim_color)
                     break
                 
         if self.info["choice_type"] == "t":
@@ -61,7 +61,7 @@ class rival():
                 aim_color = trend_list[aim_trend-1]
                 if judge_alive_dict[aim_color]:
                     self.info['aim'] = aim_color
-                    print('aim:'+aim_color)
+                    # print('aim:'+aim_color)
                     break
         
     
