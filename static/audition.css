@@ -1,0 +1,89 @@
+.container{
+    display: flex;
+    margin: auto;
+    width: 1000px;
+    background-color:dodgerblue;
+}
+
+.items{
+    margin:auto;
+    justify-content: space-between;
+    background-color:aquamarine;
+    padding: 10px;
+}
+
+.rival{
+    border: 1px solid black;
+    padding: 5px 30px;
+    margin: 10px 0px;
+}
+.rival>p{
+    margin: 0;
+}
+
+
+.judge{
+    border: 1px solid black;
+    padding: 5px 30px;
+    margin: 10px 0px;
+}
+
+.judge_name{
+    font-size: 20px;
+}
+
+.form{
+    display: flex;
+    justify-content: space-between;
+}
+
+.choose_judge{
+    display: flex;
+    flex-direction: column;
+    margin : 10px;
+}
+
+.weapon{
+    display: flex;
+    background-color: aquamarine;
+    flex-direction: column;
+    padding: 5px 30px;
+    margin: 10px 0px;
+}
+
+.choose_critical {
+    display: flex;
+    flex-direction: column;
+    margin : 10px;
+  }
+
+.radio-group {
+    display: flex;
+    flex-direction: column;
+  }
+
+/* 1. ラジオボタンを非表示にする */
+input[type="radio"] {
+    display: none;
+  }
+  
+  /* 2. ラジオボタンに対応するラベルをスタイル化する */
+label {
+    display: block;
+    border: 1px solid #ccc;
+    padding: 10px;
+    margin-bottom: 5px;
+    cursor: pointer;
+  }
+  
+  /* ラジオボタンが選択されたときのスタイル */
+input[type="radio"]:checked + label {
+    border-color: #007bff; /* 選択されたときの枠線色 */
+    font-weight: bold; /* 選択されたときのフォントの太さ */
+  }
+
+
+
+
+
+
