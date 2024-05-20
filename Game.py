@@ -17,30 +17,48 @@ class play():
         print('exe_turn')
         self.myunit_move(input)
         #ライバルのATK
-        critical_rate_dict = {'p':1.5,'g':1.1,'n':1.0,'b':0.5}
         for rival in self.settings.rival_list:
-            aim = rival.info['aim']
-            critical = rival.info['critical']
-            print(rival.info['name'],critical)
-            if critical == 'm':
-                for col in['Vo','Da','Vi']:
-                    damage = rival.info['memATK']
-                    self.situation.judge_dict[col].info['HP'] -= int(damage)
-                    if self.situation.judge_dict[col].info['HP']<0:
-                        #LA処理(未実装)
-                        self.situation.judge_dict[col].info['HP']=0
-                    print(damage,col)
-            else:
-                damage = rival.info['baseATK']
-                critical_rate = critical_rate_dict[critical]
-                if aim == rival.info['color']:
-                    damage *= 2
-                self.situation.judge_dict[aim].info['HP']-= int(damage*critical_rate)
-                if self.situation.judge_dict[aim].info['HP']<0:
-                    #LA処理(未実装)
-                    self.situation.judge_dict[aim].info['HP']=0
-                print(damage*critical_rate,aim)
+            self.rival_move(rival)
+            
+        self.start_step()
 
+    # ターン開始処理
+    def start_step(self):
+        #泣いていたパッシブを消去し、残り発動回数をデクリメント
+        
+        #このターンに鳴くパッシブを決めてpassive_listに追加
+        
+        #バフの残りターンをデクリメント
+        print(self.situation.buff_list)
+        for contents in self.situation.buff_list:
+            if contents['turn']>1:
+                contents['turn'] -=1
+            elif contents['turn'] == 0:
+                self.situation.buff_list.remove(contents)
+
+    def rival_move(self,rival):
+        critical_rate_dict = {'p':1.5,'g':1.1,'n':1.0,'b':0.5}
+        aim = rival.info['aim']
+        critical = rival.info['critical']
+        print(rival.info['name'],critical)
+        if critical == 'm':
+            for col in['Vo','Da','Vi']:
+                damage = rival.info['memATK']
+                self.situation.judge_dict[col].info['HP'] -= int(damage)
+                if self.situation.judge_dict[col].info['HP']<0:
+                    #LA処理(未実装)
+                    self.situation.judge_dict[col].info['HP']=0
+                print(damage,col)
+        else:
+            damage = rival.info['baseATK']
+            critical_rate = critical_rate_dict[critical]
+            if aim == rival.info['color']:
+                damage *= 2
+            self.situation.judge_dict[aim].info['HP']-= int(damage*critical_rate)
+            if self.situation.judge_dict[aim].info['HP']<0:
+                #LA処理(未実装)
+                self.situation.judge_dict[aim].info['HP']=0
+            print(damage*critical_rate,aim)
             
     def myunit_move(self,input):
         card_type,idx = list(input['weapon'])
@@ -51,7 +69,7 @@ class play():
         elif card_type == 'P':
             weapon = self.settings.pweapon_list[idx]
         #攻撃力計算　各属性の基礎攻撃力(属性一致かどうかは次で計算)
-        ATK_dict = weapon.getATK(self.settings,self.situation,input)
+        ATK_dict,put_buff = weapon.getATK(self.settings,self.situation,input)
         appeal_dict={'Vo':0,'Da':0,'Vi':0}
         print('myunit')
         print(ATK_dict)
@@ -65,6 +83,9 @@ class play():
                 #Excellent処理(aimと一致した属性の攻撃は2倍)
                 appeal_dict[col] += ATK_dict[col]  
         print(appeal_dict)
+        print(self.situation.buff_list)
+        print(put_buff)
+        self.situation.buff_list += put_buff
         print('------------')
         for col in ['Vo','Da','Vi']:
             self.situation.judge_dict[col].info['HP'] -=min(self.situation.judge_dict[col].info['HP'],appeal_dict[col])

@@ -7,7 +7,7 @@ from transfer_class import Settings,Situation
 
 app = Flask(__name__)
 app.secret_key = 'test'
-app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(minutes=1)
+# app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(minutes=1)
  
 @app.route("/",methods=['GET','POST'])
 def index():

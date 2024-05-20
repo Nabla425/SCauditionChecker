@@ -27,7 +27,7 @@ class pweapon():
             l+='アピール'
             return l
         
-    def getATK(self,settings:Settings.settings,situation:Situation.situation,input)->dict:
+    def getATK(self,settings:Settings.settings,situation:Situation.situation,input):
         color_list = ['Vo','Da','Vi','Ex']
         aim = input['aim']
         critical = float(input['critical'])
@@ -42,7 +42,8 @@ class pweapon():
             iP = situation.Pstatus[color]
             ATK =int(int(int(iP*2 + S_status*0.2*(1+0.1*settings.week))*buff*critical) * weapon_rate)
             ATK_dict[col]=ATK
-        return ATK_dict
+        put_buff = self.info['buff']
+        return ATK_dict,put_buff
         
     def push_DB(self):
         c = sqlite3.connect('datas/data.db')

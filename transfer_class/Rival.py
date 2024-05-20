@@ -39,9 +39,6 @@ class rival():
         trend_list = ['','','']
         for k,v in trend.items():
             trend_list[v-1]=k
-        # print(trend,trend_list)
-        # print(judge_alive_dict)
-
         if self.info["choice_type"] == "s":
             for i in range(3):
                 #スピア先の流行順位

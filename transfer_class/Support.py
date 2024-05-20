@@ -41,7 +41,8 @@ class support() :
             iP = situation.Pstatus[color]
             ATK =int(int(int(iP*0.5 + (S_status + 3*iS) * (1 + 0.1*settings.week) * 0.2)*buff*critical) * weapon_rate)
             ATK_dict[col]=ATK
-        return ATK_dict
+        put_buff = self.info['buff']
+        return ATK_dict,put_buff
             
 
         

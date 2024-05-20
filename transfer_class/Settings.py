@@ -31,14 +31,17 @@ class settings:
             rival_move = json.load(f)
         for rival in self.rival_list:
             table = rival_move[rival.info['name']]
-            key = '{0}T'.format(turn)
-            table = table[key]
-            options = list(table.keys())
-            weight = list(table.values())
-            critical = random.choices(options, weights = weight)[0]
-            rival.info['critical'] = critical
-            if rival.info['mem_turn'] == turn:
-                rival.info['critical']='m'
+            if turn < 6:
+                key = '{0}T'.format(turn)
+                table = table[key]
+                options = list(table.keys())
+                weight = list(table.values())
+                critical = random.choices(options, weights = weight)[0]
+                rival.info['critical'] = critical
+                if rival.info['mem_turn'] == turn:
+                    rival.info['critical']='m'
+            else:
+                rival.info['critical'] = random.choices(['p','g','n','b'])
             
     def set_rival_mem_turn(self):
         with open('datas/rival_mem_turn.json') as f:
