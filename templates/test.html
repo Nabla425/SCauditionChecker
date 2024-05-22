@@ -1,0 +1,81 @@
+<head>
+    <link rel="stylesheet" href="static/audition.css">
+</head>
+{% extends "base.html" %}
+{%block content%}
+<div class='container'>
+    <div class="audition_explain">
+        
+        <p>{{settings.audition_name}} S{{(week/8)|int+1}}第{{settings.week%8}}週</p>
+        <p>Turn:{{situation.turn}}</p>
+    </div>
+</div>
+    <form action="/audition/turn" class="container" method='POST'>
+    <div class='items'>
+        {% for rival in settings.rival_list%}
+        <div class = 'rival'>
+            <p>ライバル{{rival.info['name']}}</p>
+            <p>判定：{{rival.get_critical_str()}}</p>
+            {%if rival.info['aim']==rival.info['color']%}
+            <p>{{rival.info['baseATK']*2}}→{{rival.info['aim']}}</p>
+            {%else%}
+            <p>{{rival.info['baseATK']}}→{{rival.info['aim']}}</p>
+            {%endif%}
+        </div>
+        {%endfor%}
+        <div class="status_box">
+            <p>Vo:{{situation.Pstatus['Vo']}}</p>
+            <p>Da:{{situation.Pstatus['Da']}}</p>
+            <p>Vi:{{situation.Pstatus['Vi']}}</p>
+            <p>Me:{{situation.Pstatus['Me']}}</p>
+            <p>Memory{{(situation.Pstatus['memory_gage']*100)|int}}%</p>
+        </div>
+    </div>
+
+    <div class='weapon'>
+        {% for support in settings.support_list %}
+        {%set support_info=support.info%}
+            <input type="radio" id={{support_info['key']}} name="weapon" value={{'S'~loop.index0}} required>
+            <label for={{support_info['key']}}>
+                <p>{{support_info['card_name']}}({{support_info['card_type']}})</p>
+                <p>{{support.get_appeal_str()}}</p>
+            </label>
+        {% endfor %}
+        {%for pweapon in settings.pweapon_list%}
+        {%set pro=pweapon.info%}
+        <input type="radio" id={{pro['card_name']}} name="weapon" value={{'P'~loop.index0}} checked required>
+        <label for={{pro['card_name']}}>
+            <p>{{pro['card_name']}}({{pro['card_type']}})</p>
+            <p>{{pweapon.get_appeal_str()}}</p>
+        </label>
+        {%endfor%}
+    </div>
+
+    <div class='items'>
+        <div class="choose_judge">
+            {% for col,judge in situation.judge_dict.items()%}
+            <input type="radio" id={{col}} name="aim" value={{col}} checked required>
+            <label for={{col}}>
+                <span class="judge_name">{{col}} </span>   
+                <span class="trend">流行:{{settings.trend[col]}}位</span>
+                <p><meter min="0" max={{judge.info['Max_HP']}} value={{judge.info['HP']}}></meter>{{judge.info['HP']}}</p>
+            </label>
+            {%endfor%}
+        </div>
+        <p class="">判定</p>
+
+        <div class="choose_critical">
+            <input type="radio" id="Perfect" name="critical" value=1.5 checked required>
+            <label for="Perfect">Perfect</label>
+            <input type="radio" id="Good" name="critical" value=1.1>
+            <label for="Good">Good</label>
+            <input type="radio" id="Normal" name="critical" value=1.0>
+            <label for="Normal">Normal</label>
+            <input type="radio" id="Bad" name="clitical" value=0.5>
+            <label for="Bad">Bad</label>
+          </div>
+          <input type="submit"></input>
+          <input type='button' onclick="location.href='audition/reset'" value='Reset'></input>
+          <input type='button' onclick="location.href='audition/back'" value='1ターン戻る'></input>
+    </div>
+    </form>  

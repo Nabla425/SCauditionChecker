@@ -1,8 +1,17 @@
-*{
-    font-family:fantasy;
-    
+body{
+    font-family: 'Arial', sans-serif;
+    background-color: #f8f9fa;
+    margin: 0;
+    padding: 0;
+    height:100vh;
 }
 p{
     font-size: large;
     margin : 0;
+}
+
+.app {
+    display: flex;
+    justify-content: center;
+    align-items: center;
 }

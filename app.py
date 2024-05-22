@@ -1,23 +1,51 @@
-from flask import Flask, render_template,request,redirect,session
+from flask import Flask, render_template,request,redirect,session,jsonify
 import Init,Game,util
 import pickle
-from datetime import timedelta
 
 from transfer_class import Settings,Situation
 
+#jinja2とvuejsでデリミタが重複しているので変更
+class CustomFlask(Flask):
+    jinja_options = Flask.jinja_options.copy()
+    jinja_options.update(dict(
+    block_start_string='(%',
+    block_end_string='%)',
+    variable_start_string='((',
+    variable_end_string='))',
+    comment_start_string='(#',
+    comment_end_string='#)',
+  ))
+
 app = Flask(__name__)
 app.secret_key = 'test'
+app.config['JSON_SORT_KEYS'] = False
 # app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(minutes=1)
  
 @app.route("/",methods=['GET','POST'])
 def index():
-    session.clear()
-    print(session)
     return render_template("index.html")
-    
+
 @app.route("/audition",methods=['GET','POST'])
 def audition():
-    if not any(session):
+    return render_template('audition.html')
+    
+@app.route("/api/turn",methods=["GET","POST"])
+def exe_one_turn():
+    in_data = request.json
+    settings = Settings.settings()
+    settings.set_from_json(in_data['settings'])
+    situation = Situation.situation()
+    situation.set_from_json(in_data['situation'])
+    input = dict(request.json['form'])
+    #1ターン分の処理
+    GM = Game.play(settings,situation)
+    GM.oneTurnProcess(input)
+    data ={'settings':settings.get_dict(),'situation':situation.get_dict()}
+    print(data)
+    return jsonify(data)
+
+@app.route("/api/init",methods=["GET","POST"])
+def audition_init():
         audition_name = '"歌姫楽宴"'
         rival_list,judge_dict = Init.init_audition(audition_name)
         support_keys = ['"櫻木真乃駅線上の日常4凸"','"風野灯織水面を仰いで海の底4凸"','"小宮果穂反撃の狼煙をあげよ！4凸"','"園田智代子kimagure全力ビート！4凸"']
@@ -29,36 +57,10 @@ def audition():
         settings = Settings.settings(support_list,pweapon_list,audition_name[1:-1],29,trend,rival_list)
         settings.set_rival_mem_turn()
         situation=Situation.situation(judge_dict,{'Vo':300,'Da':500,'Vi':415,'Me':317,'memory_gage':0.1})
-        session['settings'] = pickle.dumps(settings)
-        session['situation'] = pickle.dumps(situation)
-        session['history'] = []
-        return render_template(
-            "audition.html",rival_list=settings.rival_list,judge_dict=situation.judge_dict,settings=settings,situation=situation
-            )
-    else:
-        settings = pickle.loads(session.get('settings'))
-        situation = pickle.loads(session.get('situation'))
-        # util.test_rival_mem_turn(settings)
-        #対面判定のset
-        settings.set_rival_critical(situation.turn)
-        rival = settings.rival_list[0]
-        rival.set_aim(settings.trend,situation.turn,situation.get_judge_alive_dict())
-        return render_template(
-            "audition.html",rival_list=settings.rival_list,judge_dict=situation.judge_dict,settings=settings,situation=situation
-            )
-    
-@app.route("/audition/turn",methods=["GET","POST"])
-def exe_one_turn():
-    session['history'].append(session.get('situation'))
-    settings = pickle.loads(session.get('settings'))
-    situation = pickle.loads(session.get('situation'))
-    GM = Game.play(settings,situation)
-    GM.oneTurnProcess(dict(request.form))
-    situation.turn += 1
-    session['settings'] = pickle.dumps(settings)
-    session['situation'] = pickle.dumps(situation)
-    return redirect('/audition')
-
+        data ={'settings':settings.get_dict(),'situation':situation.get_dict()}
+        print(situation.judge_dict)
+        return jsonify(data)
+        
 #オーディションをリセット　settionをリセット
 @app.route('/audition/reset')
 def init_audition():
@@ -66,8 +68,6 @@ def init_audition():
         session.pop('situation')
     rival_list,judge_dict = Init.init_audition('"歌姫楽宴"')
     situation=Situation.situation(judge_dict,{'Vo':300,'Da':500,'Vi':415,'Me':317,'memory_gage':0.1})
-    session['situation'] = pickle.dumps(situation)
-    session['history'] = []
     return redirect('/audition')
 
 @app.route('/audition/back')
@@ -76,15 +76,10 @@ def back_one_turn():
         session['situation'] = session['history'].pop()
     return redirect('/audition')
     
-
-# @app.route("/create",methods=["GET","POST"])
-# def create():
-#     if request.method == "POST":
-#         title = request.form.get('title')
-#         body = request.form.get('body')
-#         return redirect('/')
-#     else:
-#         return render_template("create.html")
+@app.route('/api/hello')
+def test():
+    print('api required')
+    return{'message':'testAPI'}
 
 
 

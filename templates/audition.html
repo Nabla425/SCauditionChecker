@@ -3,67 +3,69 @@
 </head>
 {% extends "base.html" %}
 {%block content%}
-<div class='container'>
-    <div class="audition_explain">
-        {%set week = settings.week%}
-        <p>{{settings.audition_name}} S{{(week/8)|int+1}}第{{settings.week%8}}週</p>
-        <p>Turn:{{situation.turn}}</p>
-    </div>
-</div>
-    <form action="/audition/turn" class="container" method='POST'>
-    <div class='items'>
-        {% for rival in rival_list%}
-        <div class = 'rival'>
-            <p>ライバル{{rival.info['name']}}</p>
-            <p>判定：{{rival.get_critical_str()}}</p>
-            {%if rival.info['aim']==rival.info['color']%}
-            <p>{{rival.info['baseATK']*2}}→{{rival.info['aim']}}</p>
-            {%else%}
-            <p>{{rival.info['baseATK']}}→{{rival.info['aim']}}</p>
-            {%endif%}
-        </div>
-        {%endfor%}
-        <div class="status_box">
-            <p>Vo:{{situation.Pstatus['Vo']}}</p>
-            <p>Da:{{situation.Pstatus['Da']}}</p>
-            <p>Vi:{{situation.Pstatus['Vi']}}</p>
-            <p>Me:{{situation.Pstatus['Me']}}</p>
-            <p>Memory{{(situation.Pstatus['memory_gage']*100)|int}}%</p>
+<div id="app">
+    <div class='container'>
+        <div class="audition_explain">
+            <p>[[settings.audition_name]] </p>
+            <p>Turn:[[situation.turn]]</p>
         </div>
     </div>
+    <form class="container" @submit.prevent="handleSubmit">
+        <div class='items'>
+            <div class = 'rival' v-for='rival in settings.rival_list'>
+                <p>ライバル[[rival.name]] </p>
+                <p>判定：[[rival.critical]]</p>
+                <p v-if='rival.aim==rival.color'>[[rival.baseATK*2]]→[[rival.aim]]</p>
+                <p v-else>[[rival.baseATK]]→[[rival.aim]]</p>
+            </div>
+            <div class="status_box">
+                <p>Vo:[[situation.Pstatus.Vo]]</p>
+                <p>Da:[[situation.Pstatus.Da]]</p>
+                <p>Vi:[[situation.Pstatus.Vi]]</p>
+                <p>Me:[[situation.Pstatus.Me]]</p>
+                <p>Memory[[(situation.Pstatus.memory_gage*100)]]%</p>
+            </div>
+        </div>
 
-    <div class='weapon'>
-        {% for support in settings.support_list %}
-        {%set support_info=support.info%}
-            <input type="radio" id={{support_info['key']}} name="weapon" value={{'S'~loop.index0}} required>
-            <label for={{support_info['key']}}>
-                <p>{{support_info['card_name']}}({{support_info['card_type']}})</p>
-                <p>{{support.get_appeal_str()}}</p>
-            </label>
-        {% endfor %}
-        {%for pweapon in settings.pweapon_list%}
-        {%set pro=pweapon.info%}
-        <input type="radio" id={{pro['card_name']}} name="weapon" value={{'P'~loop.index0}} checked required>
-        <label for={{pro['card_name']}}>
-            <p>{{pro['card_name']}}({{pro['card_type']}})</p>
-            <p>{{pweapon.get_appeal_str()}}</p>
-        </label>
-        {%endfor%}
-    </div>
-
-    <div class='items'>
-        <div class="choose_judge">
-            {% for col,judge in judge_dict.items()%}
-            <input type="radio" id={{col}} name="aim" value={{col}} checked required>
-            <label for={{col}}>
-                <span class="judge_name">{{col}} </span>   
-                <span class="trend">流行:{{settings.trend[col]}}位</span>
-                <p><meter min="0" max={{judge.info['Max_HP']}} value={{judge.info['HP']}}></meter>{{judge.info['HP']}}</p>
-            </label>
-            {%endfor%}
+        <div class='weapon'>
+            <div v-for='(support, index) in settings.support_list' :key="support.key">
+                <input type="radio" :id="support.key" name="weapon" :value="'S' + index" required>
+                <label :for="support.key">
+                    <p>[[ support.card_name ]] ([[ support.card_type ]])</p>
+                    <p class='card_explain'>
+                        <span v-for='(rate,col) in support.appeal'>
+                            <span v-if='[[rate]]>0'>[[col]][[rate]]倍</span>
+                        </span>
+                        <span>アピール</span>
+                    </p>
+                </label>
+            </div>
+            <div v-for='(pweapon, index) in settings.pweapon_list' :key="pweapon.card_name">
+                <input type="radio" :id="pweapon.card_name" name="weapon" :value="'P' + index" checked required>
+                <label :for="pweapon.card_name">
+                    <p>[[ pweapon.card_name ]] ([[ pweapon.card_type ]])</p>
+                    <p class='card_explain'>
+                        <span v-if='pweapon.ATKtype == "whole"'>全観客に</span>
+                        <span v-for='(rate,col) in pweapon.weapon_rate'>
+                            <span v-if='[[rate]]>0'>[[col]][[rate]]倍</span>
+                        </span>
+                        <span>アピール</span>
+                    </p>
+                </label>
+            </div>
         </div>
+        <div class='items'>
+            <div class="choose_judge">
+                <div v-for='(judge,col) in situation.judge_dict'>
+                <input type="radio" :id="col" name="aim" :value="col" checked required>
+                <label :for="col">
+                    <span class="judge_name">[[col]] </span>   
+                    <span class="trend">流行:[[ settings.trend[col] ]]位</span>
+                    <p><meter min="0" :max="judge.Max_HP" :value="judge.HP"></meter>[[judge.HP]]</p>
+                </label>
+                </div>
+            </div>
         <p class="">判定</p>
-
         <div class="choose_critical">
             <input type="radio" id="Perfect" name="critical" value=1.5 checked required>
             <label for="Perfect">Perfect</label>
@@ -75,15 +77,81 @@
             <label for="Bad">Bad</label>
           </div>
           <input type="submit"></input>
-          <input type='button' onclick="location.href='audition/reset'" value='Reset'></input>
-          <input type='button' onclick="location.href='audition/back'" value='1ターン戻る'></input>
-    </div>
-    </form>  
+          <input type='button' @click="reset" value='Reset'></input>
+          <input type='button' @click="back" value='1ターン戻る'></input>
+        </div>
+    </form>
+<pre>[[situation]]</pre>
+<pre>[[settings]]</pre>
 
-    <script>
-        {%for rival in settings.rival_list%}
-        console.log('{{rival}}');
-        {%endfor%}
-    </script>
+</div>
 
+<script src="https://cdn.jsdelivr.net/npm/vue@2"></script>
+<script>
+    new Vue({
+        el: '#app',
+        delimiters: ["[[", "]]"],
+        data: {
+            settings: {},
+            situation: {},
+            history: [], // 状況の履歴を保持するための配列
+        },
+        mounted() {
+            fetch('/api/init')
+                .then(response => response.json())
+                .then(data => {
+                    this.settings = data.settings;
+                    this.situation = data.situation;
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                });
+        },
+        methods: {
+            handleSubmit() {
+                // 現在の状況を履歴に保存
+                this.history.push(JSON.parse(JSON.stringify(this.situation)));
+
+                const data = {
+                    form: Object.fromEntries(new FormData(document.querySelector('form'))),
+                    situation: this.situation,
+                    settings: this.settings
+                };
+
+                fetch('/api/turn', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json' // データがJSON形式であることを明示
+                    },
+                    body: JSON.stringify(data) // オブジェクトをJSON形式の文字列に変換して送信
+                })
+                .then(response => response.json()) // レスポンスをJSONとしてパース
+                .then(data => {
+                    console.log('Received data:', data); // 受け取ったデータをコンソールに出力
+                    this.settings = data.settings;
+                    this.situation = data.situation;
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                });
+            },
+            back() {
+                if (this.history.length > 0) {
+                    this.situation = this.history.pop(); // 履歴から最後の状況を取り出して現在の状況に設定
+                }
+            },
+            reset(){
+                fetch('/api/init')
+                .then(response => response.json())
+                .then(data => {
+                    this.situation = data.situation;
+                    this.history = [];
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                });
+            }
+        }
+    });
+</script>
 {%endblock%}

@@ -1,15 +1,17 @@
 import json,random
+from transfer_class import Rival,Support,P_weapon
 
 class settings:
     support_list:list
     pweapon_list:list
     audition_name:str
+    rival_list:list
     week:int
     trend:dict
-    rival_list:list
+    
     def __init__(
-            self,support_list,pweapon_list,audition_name,
-            week,trend,rival_list) -> None:
+            self,support_list=[],pweapon_list=[],audition_name='',
+            week=0,trend={},rival_list=[]):
         self.support_list = support_list
         self.pweapon_list = pweapon_list
         self.audition_name = audition_name
@@ -20,6 +22,26 @@ class settings:
         self.set_rival_critical(1)
         self.set_rival_aim(self.trend,1,{'Vo':True,'Da':True,'Vi':True})
             
+    def get_dict(self):
+        ret_dict = {}
+        ret_dict['support_list'] = [s.info for s in self.support_list]
+        ret_dict['pweapon_list'] = [p.info for p in self.pweapon_list]
+        ret_dict['rival_list'] = [r.info for r in self.rival_list]
+        ret_dict['audition_name'] = self.audition_name
+        ret_dict['week'] = self.week
+        ret_dict['trend']= self.trend
+        return ret_dict
+        
+    def set_from_json(self,in_dict):
+        # in_dict = json.loads(in_dict)
+        self.support_list = [Support.support(s) for s in in_dict['support_list']]
+        self.pweapon_list = [P_weapon.pweapon(p) for p in in_dict['pweapon_list']]
+        self.rival_list = [Rival.rival(r) for r in in_dict['rival_list']]
+        self.audition_name = in_dict['audition_name']
+        self.week = in_dict['week']
+        self.trend = in_dict['trend']
+            
+
     def sumSstatus(self,color):
         sum = 0
         for support in self.support_list:

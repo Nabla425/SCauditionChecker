@@ -27,7 +27,7 @@ class pweapon():
             l+='アピール'
             return l
         
-    def getATK(self,settings:Settings.settings,situation:Situation.situation,input):
+    def getATK(self,settings,situation,input):
         color_list = ['Vo','Da','Vi','Ex']
         aim = input['aim']
         critical = float(input['critical'])

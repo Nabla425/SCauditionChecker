@@ -19,17 +19,27 @@ class play():
         #ライバルのATK
         for rival in self.settings.rival_list:
             self.rival_move(rival)
-            
+        
+        #ターン終了
+        self.situation.turn += 1
+        #次ターン開始処理
         self.start_step()
 
     # ターン開始処理
     def start_step(self):
+        #対面の判定と狙い先のセット
+        turn = self.situation.turn
+        trend = self.settings.trend
+        self.settings.set_rival_critical(turn)
+        isAlive = self.situation.get_judge_alive_dict()
+        self.settings.set_rival_aim(trend,turn,isAlive)
+        
         #泣いていたパッシブを消去し、残り発動回数をデクリメント
         
         #このターンに鳴くパッシブを決めてpassive_listに追加
         
         #バフの残りターンをデクリメント
-        print(self.situation.buff_list)
+        # print(self.situation.buff_list)
         for contents in self.situation.buff_list:
             if contents['turn']>1:
                 contents['turn'] -=1
@@ -63,11 +73,14 @@ class play():
     def myunit_move(self,input):
         card_type,idx = list(input['weapon'])
         idx = int(idx)
+        print(card_type,idx)
         aim = input['aim']
         if card_type=='S':
             weapon = self.settings.support_list[idx]
         elif card_type == 'P':
             weapon = self.settings.pweapon_list[idx]
+        print(vars(weapon))
+        print(type(weapon))
         #攻撃力計算　各属性の基礎攻撃力(属性一致かどうかは次で計算)
         ATK_dict,put_buff = weapon.getATK(self.settings,self.situation,input)
         appeal_dict={'Vo':0,'Da':0,'Vi':0}
