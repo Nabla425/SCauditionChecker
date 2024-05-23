@@ -1,17 +1,154 @@
-body{
-    font-family: 'Arial', sans-serif;
+@import url('https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c&display=swap');
+
+body {
+    font-family: 'M PLUS Rounded 1c', sans-serif;
     background-color: #f8f9fa;
     margin: 0;
     padding: 0;
-    height:100vh;
-}
-p{
-    font-size: large;
-    margin : 0;
+    height: 100%;
 }
 
-.app {
+header {
+    width: 100%;
     display: flex;
-    justify-content: center;
+    justify-content: space-between;
     align-items: center;
+    background-color: #343a40;
+    color: #ffffff;
+    padding: 10px 20px;
+    position: fixed;
+}
+
+.header-title {
+    font-size: 1.5em;
+}
+
+.header-buttons .btn {
+    margin: 10px;
+    padding: 5px 10px;
+    background-color: #007bff;
+    color: #ffffff;
+    border: none;
+    cursor: pointer;
+}
+
+.header-buttons .btn:hover {
+    background-color: #0056b3;
+}
+
+.sidebar {
+    position: fixed;
+    top: 66px;
+    bottom: 0;
+    width: 200px;
+    background-color: #ffffff;
+    border-right: 1px solid #dee2e6;
+    padding: 10px;
+    transition: transform 0.3s ease;
+    overflow-y: auto;
+}
+
+.sidebar.left {
+    left: 0;
+}
+
+.sidebar.right {
+    width: 400px;
+    right: 0;
+}
+
+.sidebar nav ul {
+    list-style-type: none;
+    padding: 0;
+}
+
+.sidebar nav ul li {
+    margin: 10px 0;
+}
+
+.sidebar nav ul li a {
+    text-decoration: none;
+    color: #343a40;
+}
+
+.sidebar nav ul li a:hover {
+    text-decoration: underline;
+}
+
+.sidebar .contact-me {
+    position: absolute;
+    bottom: 10px;
+    left: 10px;
+}
+
+.sidebar .contact-me a {
+    display: block;
+    color: #343a40;
+    text-decoration: none;
+    margin-bottom: 5px;
+}
+
+.sidebar .contact-me a:hover {
+    text-decoration: underline;
+}
+
+.toggle-btn {
+    position: absolute;
+    top: 10px;
+    left: 180px;
+    background-color: #007bff;
+    color: #ffffff;
+    border: none;
+    cursor: pointer;
+    padding: 5px 10px;
+    font-size: 1em;
+}
+
+#toggle-right-btn{
+    left :10px
+}
+
+.toggle-btn:hover {
+    background-color: #0056b3;
+}
+
+main {
+    margin-left: 200px; /* Adjust based on sidebar width */
+    margin-right:400px;
+    margin-bottom: 100px;
+    padding: 20px;
+}
+
+.sidebar.collapsed {
+    transform: translateX(-85%);
+}
+
+.sidebar.right.collapsed {
+    transform: translateX(85%);
+}
+
+@media (max-width: 768px) {
+    .sidebar {
+        transform: translateX(-85%);
+    }
+
+    .sidebar.right {
+        transform: translateX(85%);
+    }
+
+    .sidebar.collapsed {
+        transform: translateX(15%);
+    }
+
+    .sidebar.right.collapsed {
+        transform: translateX(15%);
+    }
+
+    .toggle-btn {
+        left: 10px;
+    }
+
+    main {
+        margin-left: 10px;
+    }
 }

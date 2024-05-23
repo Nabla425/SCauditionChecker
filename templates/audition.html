@@ -65,24 +65,44 @@
                 </label>
                 </div>
             </div>
-        <p class="">判定</p>
-        <div class="choose_critical">
-            <input type="radio" id="Perfect" name="critical" value=1.5 checked required>
-            <label for="Perfect">Perfect</label>
-            <input type="radio" id="Good" name="critical" value=1.1>
-            <label for="Good">Good</label>
-            <input type="radio" id="Normal" name="critical" value=1.0>
-            <label for="Normal">Normal</label>
-            <input type="radio" id="Bad" name="clitical" value=0.5>
-            <label for="Bad">Bad</label>
-          </div>
-          <input type="submit"></input>
-          <input type='button' @click="reset" value='Reset'></input>
-          <input type='button' @click="back" value='1ターン戻る'></input>
+            <p class="">判定</p>
+            <div class="choose_critical">
+                <input type="radio" id="Perfect" name="critical" value=1.5 checked required>
+                <label for="Perfect">Perfect</label>
+                <input type="radio" id="Good" name="critical" value=1.1>
+                <label for="Good">Good</label>
+                <input type="radio" id="Normal" name="critical" value=1.0>
+                <label for="Normal">Normal</label>
+                <input type="radio" id="Bad" name="clitical" value=0.5>
+                <label for="Bad">Bad</label>
+            </div>
+            <input id='submit' type="submit"></input>
+            <div id='buff_box'>バフ
+            <br>
+            <ul>
+                <li v-for="buff in situation.buff_list">
+                    [[buff.color]][[buff.buff]]%UP [[buff.turn]]ターン
+                </li>
+            </ul>   
+            </div>
+            <div id="btn-box">
+                <input type='button' class='reset-btn' @click="reset" value='Reset'></input>
+                <input type='button' class='back-btn' @click="back" value='1ターン戻る'></input>
+            </div>
         </div>
     </form>
-<pre>[[situation]]</pre>
-<pre>[[settings]]</pre>
+    <div id="endScreen">
+        <div class="end-screen-content">
+          <h1>終了</h1>
+          <div class="result-box">
+            <!-- 結果をここに表示します -->
+          </div>
+          <div class="buttons">
+            <button id="backButton" class='back-btn' @click="back">1ターン戻る</button>
+            <button id="restartButton" class='reset-btn' @click="reset">最初から</button>
+          </div>
+        </div>
+      </div>
 
 </div>
 
@@ -95,6 +115,7 @@
             settings: {},
             situation: {},
             history: [], // 状況の履歴を保持するための配列
+            isFinish:false,
         },
         mounted() {
             fetch('/api/init')
@@ -102,6 +123,8 @@
                 .then(data => {
                     this.settings = data.settings;
                     this.situation = data.situation;
+                    console.log(JSON.stringify(this.situation, null, 2));
+                    console.log(JSON.stringify(this.settings, null, 2));
                 })
                 .catch(error => {
                     console.error('Error:', error);
@@ -127,20 +150,25 @@
                 })
                 .then(response => response.json()) // レスポンスをJSONとしてパース
                 .then(data => {
-                    console.log('Received data:', data); // 受け取ったデータをコンソールに出力
+                    console.log('Received data:', JSON.stringify(data, null, 2)); // 受け取ったデータをコンソールに出力
                     this.settings = data.settings;
                     this.situation = data.situation;
+                    if(data.isEnd){
+                        document.getElementById('endScreen').style.display = 'flex';
+                      }
                 })
                 .catch(error => {
                     console.error('Error:', error);
                 });
             },
             back() {
+                document.getElementById('endScreen').style.display = 'none';
                 if (this.history.length > 0) {
                     this.situation = this.history.pop(); // 履歴から最後の状況を取り出して現在の状況に設定
                 }
             },
             reset(){
+                document.getElementById('endScreen').style.display = 'none';
                 fetch('/api/init')
                 .then(response => response.json())
                 .then(data => {

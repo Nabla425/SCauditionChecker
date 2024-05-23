@@ -55,8 +55,6 @@ class situation:
         buff_dict = {'Vo':0,'Da':0,'Vi':0}
         for buff in self.buff_list:
             buff_dict[buff['color']] += buff['buff']
-        for k,rate in buff_dict.items():
-            rate = 1+rate/100
         return buff_dict
     
     def get_judge_alive_dict(self):

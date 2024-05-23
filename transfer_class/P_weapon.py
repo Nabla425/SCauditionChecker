@@ -32,6 +32,7 @@ class pweapon():
         aim = input['aim']
         critical = float(input['critical'])
         ATK_dict = {}
+        buff_dict = situation.get_buff()
         for col in color_list:
             color = aim if col == 'Ex' else col 
             buff = 1
@@ -39,6 +40,7 @@ class pweapon():
             S_status = settings.sumSstatus(color)
             #アピール倍率
             weapon_rate = self.info['weapon_rate'][col]
+            buff = 1 + buff_dict[color]/100
             iP = situation.Pstatus[color]
             ATK =int(int(int(iP*2 + S_status*0.2*(1+0.1*settings.week))*buff*critical) * weapon_rate)
             ATK_dict[col]=ATK

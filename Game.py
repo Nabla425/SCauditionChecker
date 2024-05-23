@@ -3,27 +3,43 @@ import inspect
 class play():
     settings:Settings
     situation:Situation
+    isFinish:bool
     
     def __init__(self,settings,situation):
         self.settings=settings
         self.situation=situation
+        self.isFinish = False
     
     '''
     input:dict GETで送られてくる情報
     [('weapon', 'P3'), ('aim', 'Vi'), ('critical', 'Perfect')]
     '''
-    def oneTurnProcess(self,input:dict):
+    # 終了条件を満たしていればTrueを返す
+    def oneTurnProcess(self,input:dict)->bool:
         #自分のATK
         print('exe_turn')
         self.myunit_move(input)
         #ライバルのATK
         for rival in self.settings.rival_list:
             self.rival_move(rival)
-        
+            
+        if self.chk_end():
+            return True
         #ターン終了
         self.situation.turn += 1
+        if self.situation.turn > 6:
+            return True
+
         #次ターン開始処理
         self.start_step()
+        return False
+
+    def chk_end(self):
+        isDead = True
+        for  col,judge in self.situation.judge_dict.items():
+            print(isDead)
+            isDead =isDead and judge.info['HP'] <=0
+        return isDead
 
     # ターン開始処理
     def start_step(self):
@@ -79,8 +95,6 @@ class play():
             weapon = self.settings.support_list[idx]
         elif card_type == 'P':
             weapon = self.settings.pweapon_list[idx]
-        print(vars(weapon))
-        print(type(weapon))
         #攻撃力計算　各属性の基礎攻撃力(属性一致かどうかは次で計算)
         ATK_dict,put_buff = weapon.getATK(self.settings,self.situation,input)
         appeal_dict={'Vo':0,'Da':0,'Vi':0}
@@ -96,8 +110,6 @@ class play():
                 #Excellent処理(aimと一致した属性の攻撃は2倍)
                 appeal_dict[col] += ATK_dict[col]  
         print(appeal_dict)
-        print(self.situation.buff_list)
-        print(put_buff)
         self.situation.buff_list += put_buff
         print('------------')
         for col in ['Vo','Da','Vi']:

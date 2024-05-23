@@ -39,9 +39,8 @@ def exe_one_turn():
     input = dict(request.json['form'])
     #1ターン分の処理
     GM = Game.play(settings,situation)
-    GM.oneTurnProcess(input)
-    data ={'settings':settings.get_dict(),'situation':situation.get_dict()}
-    print(data)
+    isEnd = GM.oneTurnProcess(input)
+    data ={'settings':settings.get_dict(),'situation':situation.get_dict(),'isEnd':isEnd}
     return jsonify(data)
 
 @app.route("/api/init",methods=["GET","POST"])
