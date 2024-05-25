@@ -2,25 +2,34 @@
 
 body {
     font-family: 'M PLUS Rounded 1c', sans-serif;
-    background-color: #f8f9fa;
+    background-color: #e6f0ff;
     margin: 0;
     padding: 0;
     height: 100%;
 }
+
+
 
 header {
     width: 100%;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    background-color: #343a40;
+    background-color: #8dbbff;
     color: #ffffff;
     padding: 10px 20px;
     position: fixed;
 }
 
+
+
 .header-title {
-    font-size: 1.5em;
+    font-size: 1.7em;
+    color:
+    
+    
+    
+    #ffffff;
 }
 
 .header-buttons .btn {
@@ -38,7 +47,7 @@ header {
 
 .sidebar {
     position: fixed;
-    top: 66px;
+    top: 80px;
     bottom: 0;
     width: 200px;
     background-color: #ffffff;
@@ -104,8 +113,8 @@ header {
     font-size: 1em;
 }
 
-#toggle-right-btn{
-    left :10px
+#toggle-right-btn {
+    left: 10px;
 }
 
 .toggle-btn:hover {
@@ -114,9 +123,10 @@ header {
 
 main {
     margin-left: 200px; /* Adjust based on sidebar width */
-    margin-right:400px;
+    margin-right: 400px;
     margin-bottom: 100px;
     padding: 20px;
+    background-color: #F4F8FF;
 }
 
 .sidebar.collapsed {
@@ -150,5 +160,48 @@ main {
 
     main {
         margin-left: 10px;
+        
     }
+}
+
+/* New color scheme using #8dbbff as the base color */
+
+
+
+.header-buttons .btn {
+    background-color: #8dbbff;
+}
+
+.header-buttons .btn:hover {
+    background-color: #679ace;
+}
+
+.sidebar {
+    background-color: #dbeaff;
+}
+
+.sidebar nav ul li a {
+    color: #4f6d7a;
+}
+
+.sidebar nav ul li a:hover {
+    color: #8dbbff;
+    text-decoration: underline;
+}
+
+.sidebar .contact-me a {
+    color: #4f6d7a;
+}
+
+.sidebar .contact-me a:hover {
+    color: #8dbbff;
+    text-decoration: underline;
+}
+
+.toggle-btn {
+    background-color: #8dbbff;
+}
+
+.toggle-btn:hover {
+    background-color: #679ace;
 }

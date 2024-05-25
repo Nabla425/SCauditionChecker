@@ -4,14 +4,12 @@
 {% extends "base.html" %}
 {%block content%}
 <div id="app">
-    <div class='container'>
-        <div class="audition_explain">
-            <p>[[settings.audition_name]] </p>
-            <p>Turn:[[situation.turn]]</p>
-        </div>
-    </div>
     <form class="container" @submit.prevent="handleSubmit">
         <div class='items'>
+            <div class="audition_explain">
+                <p>[[settings.audition_name]] </p>
+                <p>Turn:[[situation.turn]]</p>
+            </div>
             <div class = 'rival' v-for='rival in settings.rival_list'>
                 <p>ライバル[[rival.name]] </p>
                 <p>判定：[[rival.critical]]</p>
@@ -76,7 +74,7 @@
                 <input type="radio" id="Bad" name="clitical" value=0.5>
                 <label for="Bad">Bad</label>
             </div>
-            <input id='submit' type="submit"></input>
+            <input id='submit' class='btn' type="submit"></input>
             <div id='buff_box'>バフ
             <br>
             <ul>
@@ -86,8 +84,8 @@
             </ul>   
             </div>
             <div id="btn-box">
-                <input type='button' class='reset-btn' @click="reset" value='Reset'></input>
-                <input type='button' class='back-btn' @click="back" value='1ターン戻る'></input>
+                <input type='button' class='reset-btn btn' @click="reset" value='Reset'></input>
+                <input type='button' class='back-btn btn' @click="back" value='1ターン戻る'></input>
             </div>
         </div>
     </form>

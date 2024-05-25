@@ -1,5 +1,6 @@
-from transfer_class import Settings,Situation
-import inspect
+from transfer_class import Settings,Situation,Rival,Judge,P_weapon,Support
+import random
+
 class play():
     settings:Settings
     situation:Situation
@@ -16,12 +17,19 @@ class play():
     '''
     # 終了条件を満たしていればTrueを返す
     def oneTurnProcess(self,input:dict)->bool:
-        #自分のATK
         print('exe_turn')
-        self.myunit_move(input)
-        #ライバルのATK
-        for rival in self.settings.rival_list:
-            self.rival_move(rival)
+        weapon = self.json_to_weapon(input)
+        sequences = self.get_sequence(weapon,float(input['critical']))
+        #行動順位並べ替えて、メイフェーズ処理
+        for action in sequences:
+            if type(action) == Rival.rival:
+                self.rival_move(action)
+            elif type(action) == Judge.judge:
+                self.judge_move(action)
+            elif type(action) == P_weapon.pweapon or type(action) ==Support.support:
+                self.myunit_move(weapon,input)
+            else:
+                print('error!!!!')
             
         if self.chk_end():
             return True
@@ -37,7 +45,6 @@ class play():
     def chk_end(self):
         isDead = True
         for  col,judge in self.situation.judge_dict.items():
-            print(isDead)
             isDead =isDead and judge.info['HP'] <=0
         return isDead
 
@@ -64,17 +71,17 @@ class play():
 
     def rival_move(self,rival):
         critical_rate_dict = {'p':1.5,'g':1.1,'n':1.0,'b':0.5}
+        rival.set_aim(self.settings.trend,self.situation.turn,self.situation.get_judge_alive_dict())
         aim = rival.info['aim']
         critical = rival.info['critical']
-        print(rival.info['name'],critical)
         if critical == 'm':
             for col in['Vo','Da','Vi']:
-                damage = rival.info['memATK']
+                damage = int(rival.info['memATK'])
                 self.situation.judge_dict[col].info['HP'] -= int(damage)
                 if self.situation.judge_dict[col].info['HP']<0:
                     #LA処理(未実装)
                     self.situation.judge_dict[col].info['HP']=0
-                print(damage,col)
+                print(rival.info['name'],critical,damage,col)
         else:
             damage = rival.info['baseATK']
             critical_rate = critical_rate_dict[critical]
@@ -84,22 +91,25 @@ class play():
             if self.situation.judge_dict[aim].info['HP']<0:
                 #LA処理(未実装)
                 self.situation.judge_dict[aim].info['HP']=0
-            print(damage*critical_rate,aim)
-            
-    def myunit_move(self,input):
+            print(rival.info['name'],critical,int(damage*critical_rate),aim)
+    
+    def json_to_weapon(self,input):
         card_type,idx = list(input['weapon'])
         idx = int(idx)
-        print(card_type,idx)
+        # print(card_type,idx)
         aim = input['aim']
         if card_type=='S':
             weapon = self.settings.support_list[idx]
         elif card_type == 'P':
             weapon = self.settings.pweapon_list[idx]
+        return weapon
+           
+    def myunit_move(self,weapon,input):
         #攻撃力計算　各属性の基礎攻撃力(属性一致かどうかは次で計算)
         ATK_dict,put_buff = weapon.getATK(self.settings,self.situation,input)
         appeal_dict={'Vo':0,'Da':0,'Vi':0}
-        print('myunit')
-        print(ATK_dict)
+        # print(ATK_dict)
+        aim = input['aim']
         if weapon.info['ATKtype']=='single':
             appeal_dict[aim] += sum(ATK_dict.values())
             #Excellent処理(aimと一致した属性の攻撃は2倍)
@@ -109,8 +119,53 @@ class play():
                 appeal_dict[col] += sum(ATK_dict.values())
                 #Excellent処理(aimと一致した属性の攻撃は2倍)
                 appeal_dict[col] += ATK_dict[col]  
-        print(appeal_dict)
+        # print(appeal_dict)
         self.situation.buff_list += put_buff
-        print('------------')
         for col in ['Vo','Da','Vi']:
-            self.situation.judge_dict[col].info['HP'] -=min(self.situation.judge_dict[col].info['HP'],appeal_dict[col])
+            if appeal_dict[col]>0:
+                self.situation.judge_dict[col].info['HP'] -= appeal_dict[col]
+                print(weapon.info['card_name'],appeal_dict[col],col)
+                if self.situation.judge_dict[col].info['HP'] <= 0:
+                    #LA処理(未実装)
+                    self.situation.judge_dict[col].info['HP'] = 0
+    
+    def judge_move(self,judge:Judge.judge):
+        if judge.info['HP']>0:
+            idols = [x for x in self.settings.rival_list]
+            idols.append('Me')
+            # 各アイドルの注目度リスト
+            attention_list = [1 for idol in idols]
+            #注目度に従って3名攻撃対象を選ぶ
+            selected = self.choice_idol_damaged(idols,attention_list)
+            print(judge.info['color'],'judge->',end = '')
+            for idol in selected:
+                if idol == 'Me':
+                    print('Myunit',end = ' ')
+                    self.situation.Pstatus['Me'] -= judge.info['ATK']
+                else:
+                    print(idol.info['name'],end=' ')
+                    idol.info['HP'] -= judge.info['ATK']
+            print('')
+    
+    def choice_idol_damaged(self,idols,attention):
+        target_list = []
+        flg = 0
+        while(flg<3):
+            target = random.choices(idols, weights = attention)
+            if target[0] not in target_list:
+                target_list.extend(target)
+                flg += 1
+        return target_list
+    
+    def get_sequence(self,weapon,self_critical):
+        point_dict = {'m':1.5,'p':1.5,'g':1.1,'n':1.0,'b':0.5}
+        sequence_point = {rival:point_dict[rival.info['critical']]+(ord(rival.info['name'])-65)/100 for rival in self.settings.rival_list}
+        sequence_point[weapon] = self_critical+0.09
+        sequence_point[self.situation.judge_dict['Vo']] = 1.07
+        sequence_point[self.situation.judge_dict['Da']] = 1.08
+        sequence_point[self.situation.judge_dict['Vi']] = 1.09
+        # print({k:v for k,v in point_dict.items()})
+        # print(sorted(sequence_point.items(), key=lambda x:x[1],reverse=True))
+        return [x[0] for x in sorted(sequence_point.items(), key=lambda x:x[1],reverse=True)]
+        
+        #%%

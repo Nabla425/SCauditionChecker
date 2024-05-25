@@ -12,6 +12,7 @@ class rival():
     star:int 
     aim:str
     mem_turn:int
+    critical:str
     '''
     def __init__(self,info):
         self.info=info

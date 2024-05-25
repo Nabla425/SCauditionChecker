@@ -57,7 +57,7 @@ def audition_init():
         settings.set_rival_mem_turn()
         situation=Situation.situation(judge_dict,{'Vo':300,'Da':500,'Vi':415,'Me':317,'memory_gage':0.1})
         data ={'settings':settings.get_dict(),'situation':situation.get_dict()}
-        print(situation.judge_dict)
+        # print(situation.judge_dict)
         return jsonify(data)
         
 #オーディションをリセット　settionをリセット

@@ -1,17 +1,23 @@
-
 *{
     font-weight: 700;
     margin:0px;
+    
+    
 }
 #app{
-    margin-top:46px;
+    margin-top:60px;
     font-size: 20px;
+    height: 90%;
+    color:#4f6d7a;
+
+    
 }
 .container{
     display: flex;
-    /* flex-wrap: wrap; */
-    width: 100%;
-    background-color:dodgerblue;
+    flex-wrap: wrap;
+    margin: auto;
+    width: 80%;
+    /* background-color:dodgerblue; */
 }
 
 .items{
@@ -19,8 +25,12 @@
     display: flex;
     flex-direction: column;
     justify-content: center;
-    background-color:aquamarine;
+    /* background-color:aquamarine; */
     padding: 10px;
+}
+
+.audition_explain, .status_box{
+  margin:auto;
 }
 
 .rival{
@@ -56,7 +66,7 @@
 
 .weapon{
     display: flex;
-    background-color: aquamarine;
+    /* background-color: aquamarine; */
     flex-direction: column;
     padding: 5px 30px;
     margin: 10px 0px;
@@ -97,8 +107,9 @@ label {
   
   /* ラジオボタンが選択されたときのスタイル */
 input[type="radio"]:checked +  label {
-    border-color: #007bff; /* 選択されたときの枠線色 */
+    border-color: #bf95bf; /* 選択されたときの枠線色 */
     font-weight: bold; /* 選択されたときのフォントの太さ */
+    background-color: #ffc6ff;
   }
 
 
@@ -110,12 +121,13 @@ input[type="radio"]:checked +  label {
     margin: 2px;
     cursor: pointer;
 }
-#submit {
+.btn {
     width: 130px;
-    margin: 0 auto;
+    margin: 10px auto;
     margin-bottom: 20px;
     height: 40px;
-    color: #fff;
+    font-size: large;
+    color:#4f6d7a;
     padding: 5px 10px;
     font-weight: bold;
     cursor: pointer;
@@ -124,10 +136,10 @@ input[type="radio"]:checked +  label {
     display: inline-block;
     outline: none;
     border-radius: 20px;
-    border: 2px solid #726acc;
-    background: #8ac1ff;
+    border: 2px solid #8dbbff;
+    background: #c6ddff;
   }
-  #submit:hover {
+  .btn:hover {
     background: #fff;
     color: #4433ff
   }
@@ -197,16 +209,5 @@ input[type="radio"]:checked +  label {
     margin: 20px 0;
   }
 
-  .buttons button {
-    margin: 10px;
-    padding: 10px 20px;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
-    background-color: #007bff;
-    color: white;
-  }
+ 
 
-  .buttons button:hover {
-    background-color: #0056b3;
-  }
