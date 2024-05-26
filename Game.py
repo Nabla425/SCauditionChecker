@@ -5,6 +5,7 @@ class play():
     settings:Settings
     situation:Situation
     isFinish:bool
+    result_dict={}
     
     def __init__(self,settings,situation):
         self.settings=settings
@@ -32,22 +33,18 @@ class play():
                 print('error!!!!')
             
         if self.chk_end():
+            self.result_dict = self.calc_result()
             return True
         #ターン終了
         self.situation.turn += 1
         if self.situation.turn > 6:
+            self.result_dict = self.calc_result()
             return True
 
         #次ターン開始処理
         self.start_step()
         return False
-
-    def chk_end(self):
-        isDead = True
-        for  col,judge in self.situation.judge_dict.items():
-            isDead =isDead and judge.info['HP'] <=0
-        return isDead
-
+    
     # ターン開始処理
     def start_step(self):
         #対面の判定と狙い先のセット
@@ -74,24 +71,26 @@ class play():
         rival.set_aim(self.settings.trend,self.situation.turn,self.situation.get_judge_alive_dict())
         aim = rival.info['aim']
         critical = rival.info['critical']
+        damage_dict = {'Vo':0,'Da':0,'Vi':0}
         if critical == 'm':
-            for col in['Vo','Da','Vi']:
+            for col in damage_dict.keys():
                 damage = int(rival.info['memATK'])
-                self.situation.judge_dict[col].info['HP'] -= int(damage)
-                if self.situation.judge_dict[col].info['HP']<0:
-                    #LA処理(未実装)
-                    self.situation.judge_dict[col].info['HP']=0
-                print(rival.info['name'],critical,damage,col)
+                damage_dict[col] += int(damage)
         else:
             damage = rival.info['baseATK']
             critical_rate = critical_rate_dict[critical]
             if aim == rival.info['color']:
                 damage *= 2
-            self.situation.judge_dict[aim].info['HP']-= int(damage*critical_rate)
-            if self.situation.judge_dict[aim].info['HP']<0:
-                #LA処理(未実装)
-                self.situation.judge_dict[aim].info['HP']=0
-            print(rival.info['name'],critical,int(damage*critical_rate),aim)
+            damage_dict[aim] += int(damage*critical_rate)
+            
+        for col,damage in damage_dict.items():
+            judge = self.situation.judge_dict[col]
+            if damage>0:
+                damage = min(damage,judge.info['HP'])
+                judge.info['HP'] -= int(damage)
+                judge.info['score']['appeal'][rival.info['name']] += int(damage)
+                print(rival.info['name'],critical,damage,col)
+            self.give_star(rival.info['name'],judge,rival)
     
     def json_to_weapon(self,input):
         card_type,idx = list(input['weapon'])
@@ -123,11 +122,12 @@ class play():
         self.situation.buff_list += put_buff
         for col in ['Vo','Da','Vi']:
             if appeal_dict[col]>0:
-                self.situation.judge_dict[col].info['HP'] -= appeal_dict[col]
-                print(weapon.info['card_name'],appeal_dict[col],col)
-                if self.situation.judge_dict[col].info['HP'] <= 0:
-                    #LA処理(未実装)
-                    self.situation.judge_dict[col].info['HP'] = 0
+                judge = self.situation.judge_dict[col]
+                damage = min(judge.info['HP'],appeal_dict[col])
+                judge.info['HP'] -= damage
+                judge.info['score']['appeal']['My'] += damage
+                print(weapon.info['card_name'],damage,col)
+                self.give_star('My',judge,self.situation.Pstatus)
     
     def judge_move(self,judge:Judge.judge):
         if judge.info['HP']>0:
@@ -157,6 +157,46 @@ class play():
                 flg += 1
         return target_list
     
+    def give_star(self,name,judge,idol):
+        LA_point = [8,6,4]
+        TA_point = [20,15,10]
+        three_rate = [4,3,2]
+        #3割星,6割星
+        if judge.info['score']['three_star'] == '':
+            if judge.info['score']['appeal'][name] > judge.info['Max_HP'] * 0.3:
+                judge.info['score']['three_star'] =name
+                if name in ["A","B","C","D","E"]:
+                    idol.info['star'] += three_rate[self.settings.trend[judge.info['color']]-1]
+                else:
+                    self.situation.Pstatus['star'] += three_rate[self.settings.trend[judge.info['color']]-1]
+        if judge.info['score']['six_star'] == '':
+            if judge.info['score']['appeal'][name] > judge.info['Max_HP'] * 0.6:
+                judge.info['score']['six_star'] =name
+                if name in ["A","B","C","D","E"]:
+                    idol.info['star'] += three_rate[self.settings.trend[judge.info['color']]-1]
+                else:
+                    self.situation.Pstatus['star'] += three_rate[self.settings.trend[judge.info['color']]-1]
+        if judge.info['HP'] <=0:
+            #LA付与
+            if judge.info['score']['LA'] == '':
+                judge.info['score']['LA'] = name
+                if name in ["A","B","C","D","E"]:
+                    idol.info['star'] += LA_point[self.settings.trend[judge.info['color']]-1]
+                else:
+                    self.situation.Pstatus['star'] += LA_point[self.settings.trend[judge.info['color']]-1]
+            #TA付与
+            if judge.info['score']['TA'] == '':
+                appeal_dict = judge.info['score']['appeal'] 
+                TA_idol = max(appeal_dict, key=appeal_dict.get)
+                judge.info['score']['TA'] = TA_idol
+                if TA_idol in ["A","B","C","D","E"]:
+                    rival_dict = {x.info['name']:x for x in self.settings.rival_list}
+                    rival_dict[TA_idol].info['star'] += TA_point[self.settings.trend[judge.info['color']]-1]
+                else:
+                    self.situation.Pstatus['star'] += TA_point[self.settings.trend[judge.info['color']]-1]
+        print('Mystar',self.situation.Pstatus['star'])
+            #TA付与
+    
     def get_sequence(self,weapon,self_critical):
         point_dict = {'m':1.5,'p':1.5,'g':1.1,'n':1.0,'b':0.5}
         sequence_point = {rival:point_dict[rival.info['critical']]+(ord(rival.info['name'])-65)/100 for rival in self.settings.rival_list}
@@ -168,4 +208,16 @@ class play():
         # print(sorted(sequence_point.items(), key=lambda x:x[1],reverse=True))
         return [x[0] for x in sorted(sequence_point.items(), key=lambda x:x[1],reverse=True)]
         
+    def chk_end(self):
+        isDead = True
+        for  col,judge in self.situation.judge_dict.items():
+            isDead =isDead and judge.info['HP'] <=0
+        return isDead
+
+    def calc_result(self):
+        result_dict = {}
+        for rival in self.settings.rival_list:
+            result_dict[rival.info['name']] = rival.info['star']
+        result_dict['My'] = self.situation.Pstatus['star']
+        return sorted(result_dict.items(), key=lambda x:x[1],reverse=True)
         #%%

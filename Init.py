@@ -36,6 +36,7 @@ def init_audition(audition_name):
         info_dict['critical'] = ''
         info_dict['aim'] = ''
         info_dict['mem_turn'] = 0
+        
         r = Rival.rival(info_dict)
         rival_list.append(r)
     return rival_list,judge_dict

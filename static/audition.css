@@ -196,6 +196,8 @@ input[type="radio"]:checked +  label {
   }
 
   .end-screen-content {
+    width: 60%;
+    height: 90%;
     background-color: white;
     padding: 20px;
     border-radius: 10px;
@@ -207,7 +209,52 @@ input[type="radio"]:checked +  label {
     border: 1px solid #ccc;
     padding: 20px;
     margin: 20px 0;
+    display: flex;
+    justify-content: center;
   }
 
- 
+.chart-container{
+  display: flex;
+  justify-content: center;
+}
 
+canvas{
+  max-width: 200px;
+  max-height: 200px;
+  margin:10px;
+}
+
+#star_detail_box {
+  margin: 10px;
+  border-collapse: collapse;
+}
+
+#star_detail_box table {
+  border-collapse: collapse;
+  table-layout: auto;
+  width: auto; /* テーブルの幅をコンテンツに合わせる */
+}
+
+#star_detail_box th, #star_detail_box td {
+  border: 1px solid #ddd;
+  padding: 8px;
+  white-space: nowrap; /* セルの内容を折り返さないようにする */
+}
+
+#star_detail_box th {
+  background-color: #f2f2f2;
+  font-weight: bold;
+}
+
+#star_detail_box tr:nth-child(even) {
+  background-color: #f9f9f9;
+}
+
+#star_detail_box tr:hover {
+  background-color: #f1f1f1;
+}
+
+#star_detail_box th, #star_detail_box td {
+  text-align: left;
+  padding: 8px;
+}

@@ -8,6 +8,7 @@ class settings:
     rival_list:list
     week:int
     trend:dict
+    #{'Vo':1,'Da':2,'Vi':3}
     
     def __init__(
             self,support_list=[],pweapon_list=[],audition_name='',

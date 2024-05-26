@@ -11,6 +11,7 @@ class situation:
     judge_dict:dict
     Pstatus:dict
     turn:int
+    # score_dict:dict
     
     def __init__(self,judge_dict={},status={}):
         self.hand_weapon = []

@@ -40,7 +40,7 @@ def exe_one_turn():
     #1ターン分の処理
     GM = Game.play(settings,situation)
     isEnd = GM.oneTurnProcess(input)
-    data ={'settings':settings.get_dict(),'situation':situation.get_dict(),'isEnd':isEnd}
+    data ={'settings':settings.get_dict(),'situation':situation.get_dict(),'isEnd':isEnd,'result':dict(GM.result_dict)}
     return jsonify(data)
 
 @app.route("/api/init",methods=["GET","POST"])
@@ -55,7 +55,7 @@ def audition_init():
         pweapon_list = Init.set_pweapon()
         settings = Settings.settings(support_list,pweapon_list,audition_name[1:-1],29,trend,rival_list)
         settings.set_rival_mem_turn()
-        situation=Situation.situation(judge_dict,{'Vo':300,'Da':500,'Vi':415,'Me':317,'memory_gage':0.1})
+        situation=Situation.situation(judge_dict,{'Vo':300,'Da':500,'Vi':415,'Me':317,'memory_gage':0.1,'star':0})
         data ={'settings':settings.get_dict(),'situation':situation.get_dict()}
         # print(situation.judge_dict)
         return jsonify(data)
@@ -76,9 +76,12 @@ def back_one_turn():
     return redirect('/audition')
     
 @app.route('/api/hello')
-def test():
+def api_test():
     print('api required')
     return{'message':'testAPI'}
 
+@app.route('/test')
+def test():
+    return render_template('test.html')
 
 

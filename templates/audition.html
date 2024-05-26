@@ -1,5 +1,7 @@
 <head>
     <link rel="stylesheet" href="static/audition.css">
+    <script src="https://cdn.jsdelivr.net/npm/vue@2"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 {% extends "base.html" %}
 {%block content%}
@@ -12,7 +14,7 @@
             </div>
             <div class = 'rival' v-for='rival in settings.rival_list'>
                 <p>ライバル[[rival.name]] </p>
-                <p>判定：[[rival.critical]]</p>
+                <p>判定:[[rival.critical]] ★[[rival.star]]</p>
                 <p v-if='rival.aim==rival.color'>[[rival.baseATK*2]]→[[rival.aim]]</p>
                 <p v-else>[[rival.baseATK]]→[[rival.aim]]</p>
             </div>
@@ -21,7 +23,7 @@
                 <p>Da:[[situation.Pstatus.Da]]</p>
                 <p>Vi:[[situation.Pstatus.Vi]]</p>
                 <p>Me:[[situation.Pstatus.Me]]</p>
-                <p>Memory[[(situation.Pstatus.memory_gage*100)]]%</p>
+                <p>Memory[[(situation.Pstatus.memory_gage*100)]]%  ★[[situation.Pstatus.star]]</p>
             </div>
         </div>
 
@@ -89,20 +91,60 @@
             </div>
         </div>
     </form>
+    
+    
     <div id="endScreen">
         <div class="end-screen-content">
           <h1>終了</h1>
           <div class="result-box">
-            <!-- 結果をここに表示します -->
+            <div id="ranking_box">
+                <p class="ranking" v-for='(star,idol,index) in result'>[[index+1]]位　[[idol]]　★[[star]]</p>
+            </div>
+            <div id="star_detail_box">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>審査員</th>
+                            <th>TA</th>
+                            <th>LA</th>
+                            <th>3割星</th>
+                            <th>6割星</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr v-for="(judge, color) in situation.judge_dict" :key="color">
+                            <td> [[color]] </td>
+                            <td>[[ judge.score.TA ]]</td>
+                            <td>[[ judge.score.LA ]]</td>
+                            <td>[[ judge.score.three_star ]]</td>
+                            <td>[[ judge.score.six_star ]]</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            </div>
+            <div class="result-box">
+            <div class="chart-container">
+                <div v-for="(judge, color) in situation.judge_dict" :key="color" class="chart">
+                    <canvas class='Piechart' :id="color+'PieChart'" ></canvas>
+                    <p>[[color]]</p> 
+                    <p v-for='(ATK, idol) in judge.score.appeal' :key="idol">
+                        [[idol]]: [[ATK]]
+                    </p>
+                </div>
+            </div>
+                       
           </div>
           <div class="buttons">
             <button id="backButton" class='back-btn' @click="back">1ターン戻る</button>
             <button id="restartButton" class='reset-btn' @click="reset">最初から</button>
           </div>
         </div>
-      </div>
+    </div>
 
+      
 </div>
+
 
 <script src="https://cdn.jsdelivr.net/npm/vue@2"></script>
 <script>
@@ -114,6 +156,7 @@
             situation: {},
             history: [], // 状況の履歴を保持するための配列
             isFinish:false,
+            result:{},
         },
         mounted() {
             fetch('/api/init')
@@ -123,13 +166,16 @@
                     this.situation = data.situation;
                     console.log(JSON.stringify(this.situation, null, 2));
                     console.log(JSON.stringify(this.settings, null, 2));
+                    
                 })
                 .catch(error => {
                     console.error('Error:', error);
                 });
+            
         },
         methods: {
             handleSubmit() {
+                
                 // 現在の状況を履歴に保存
                 this.history.push(JSON.parse(JSON.stringify(this.situation)));
 
@@ -151,8 +197,13 @@
                     console.log('Received data:', JSON.stringify(data, null, 2)); // 受け取ったデータをコンソールに出力
                     this.settings = data.settings;
                     this.situation = data.situation;
+                    this.result = data.result;
                     if(data.isEnd){
                         document.getElementById('endScreen').style.display = 'flex';
+                        console.log(this.result)
+                        this.drawChart('Vo');
+                        this.drawChart('Da');
+                        this.drawChart('Vi');
                       }
                 })
                 .catch(error => {
@@ -175,6 +226,51 @@
                 })
                 .catch(error => {
                     console.error('Error:', error);
+                });
+            },
+            drawChart(col) {
+                // データの準備
+                const appealScores = this.situation.judge_dict[col].score.appeal;
+                const labels = Object.keys(appealScores);
+                const data = Object.values(appealScores);
+
+                var ctx = document.getElementById(col+'PieChart').getContext('2d');
+                var myPieChart = new Chart(ctx, {
+                    type: 'pie',
+                    data: {
+                        labels: labels,
+                        datasets: [{
+                            data: data,
+                            backgroundColor: [
+                                'rgba(255, 99, 132, 0.2)',
+                                'rgba(54, 162, 235, 0.2)',
+                                'rgba(255, 206, 86, 0.2)',
+                                'rgba(75, 192, 192, 0.2)',
+                                'rgba(153, 102, 255, 0.2)',
+                                'rgba(255, 159, 64, 0.2)'
+                            ],
+                            borderColor: [
+                                'rgba(255, 99, 132, 1)',
+                                'rgba(54, 162, 235, 1)',
+                                'rgba(255, 206, 86, 1)',
+                                'rgba(75, 192, 192, 1)',
+                                'rgba(153, 102, 255, 1)',
+                                'rgba(255, 159, 64, 1)'
+                            ],
+                            borderWidth: 1
+                        }]
+                    },
+                    options: {
+                        responsive: false,
+                        maintainAspectRatio: true,
+                        plugins:{
+                            legend: {
+                            display: false
+                        }
+                    }
+                    }
+
+                
                 });
             }
         }
