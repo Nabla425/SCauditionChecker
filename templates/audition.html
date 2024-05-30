@@ -9,8 +9,8 @@
     <form class="container" @submit.prevent="handleSubmit">
         <div class='items'>
             <div class="audition_explain">
-                <p>[[settings.audition_name]] </p>
-                <p>Turn:[[situation.turn]]</p>
+                <p>[[settings.audition_name]] Turn:[[situation.turn]]</p>
+                <p>[[settings.produce_idol]]</p>
             </div>
             <div class = 'rival' v-for='rival in settings.rival_list'>
                 <p>ライバル[[rival.name]] </p>
@@ -43,7 +43,9 @@
             <div v-for='(pweapon, index) in settings.pweapon_list' :key="pweapon.card_name">
                 <input type="radio" :id="pweapon.card_name" name="weapon" :value="'P' + index" checked required>
                 <label :for="pweapon.card_name">
-                    <p>[[ pweapon.card_name ]] ([[ pweapon.card_type ]])</p>
+                    <p>[[ pweapon.card_name ]] ([[ pweapon.card_type ]])
+                        <span class="islink" v-if='pweapon.isLink'>LINK</span>
+                    </p>
                     <p class='card_explain'>
                         <span v-if='pweapon.ATKtype == "whole"'>全観客に</span>
                         <span v-for='(rate,col) in pweapon.weapon_rate'>
@@ -53,6 +55,9 @@
                     </p>
                 </label>
             </div>
+            <input type="radio"  id='memory' name="weapon" value="M0" required>
+            <label for="memory">思い出アピール [Lv[[settings.memory.lv]]] 
+                <span class="islink" v-if = 'settings.memory.isLink'>LINK</span></lavel>
         </div>
         <div class='items'>
             <div class="choose_judge">
@@ -85,6 +90,10 @@
                 </li>
             </ul>   
             </div>
+            <div id="skill_hist">
+                <p class="skill_record" v-for='record in situation.skill_history'>[[record]]
+                </p>
+            </div>
             <div id="btn-box">
                 <input type='button' class='reset-btn btn' @click="reset" value='Reset'></input>
                 <input type='button' class='back-btn btn' @click="back" value='1ターン戻る'></input>
@@ -92,6 +101,10 @@
         </div>
     </form>
     
+    <div class="sidebar right" id="right-sidebar">
+        <button class="toggle-btn" id="toggle-right-btn">☰</button>
+        <!-- You can add additional links or content here -->
+    </div>
     
     <div id="endScreen">
         <div class="end-screen-content">
@@ -145,7 +158,7 @@
       
 </div>
 
-
+<script src="static/script.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/vue@2"></script>
 <script>
     new Vue({

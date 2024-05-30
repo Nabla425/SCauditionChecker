@@ -1,24 +1,28 @@
 import json,random
-from transfer_class import Rival,Support,P_weapon
+from transfer_class import Rival,Support,P_weapon,Memory
 
 class settings:
     support_list:list
     pweapon_list:list
     audition_name:str
     rival_list:list
+    produce_idol:str
+    memory_appeal:Memory.memory
     week:int
     trend:dict
     #{'Vo':1,'Da':2,'Vi':3}
     
     def __init__(
             self,support_list=[],pweapon_list=[],audition_name='',
-            week=0,trend={},rival_list=[]):
+            week=0,trend={},rival_list=[],idol='櫻木真乃',memory=Memory.memory()):
         self.support_list = support_list
         self.pweapon_list = pweapon_list
         self.audition_name = audition_name
         self.week = week
         self.trend = trend
         self.rival_list=rival_list
+        self.produce_idol = idol
+        self.memory_appeal = memory
         self.set_rival_mem_turn()
         self.set_rival_critical(1)
         self.set_rival_aim(self.trend,1,{'Vo':True,'Da':True,'Vi':True})
@@ -29,6 +33,8 @@ class settings:
         ret_dict['pweapon_list'] = [p.info for p in self.pweapon_list]
         ret_dict['rival_list'] = [r.info for r in self.rival_list]
         ret_dict['audition_name'] = self.audition_name
+        ret_dict['memory'] = self.memory_appeal.info
+        ret_dict['produce_idol'] = self.produce_idol
         ret_dict['week'] = self.week
         ret_dict['trend']= self.trend
         return ret_dict
@@ -38,6 +44,10 @@ class settings:
         self.support_list = [Support.support(s) for s in in_dict['support_list']]
         self.pweapon_list = [P_weapon.pweapon(p) for p in in_dict['pweapon_list']]
         self.rival_list = [Rival.rival(r) for r in in_dict['rival_list']]
+        self.produce_idol = in_dict['produce_idol']
+        memory = Memory.memory()
+        memory.info = in_dict['memory']
+        self.memory_appeal = memory
         self.audition_name = in_dict['audition_name']
         self.week = in_dict['week']
         self.trend = in_dict['trend']

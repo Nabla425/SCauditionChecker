@@ -1,5 +1,6 @@
-from transfer_class import Settings,Situation,Rival,Judge,P_weapon,Support
+from transfer_class import Settings,Situation,Rival,Judge,P_weapon,Support,Memory
 import random
+import util
 
 class play():
     settings:Settings
@@ -19,6 +20,7 @@ class play():
     # 終了条件を満たしていればTrueを返す
     def oneTurnProcess(self,input:dict)->bool:
         print('exe_turn')
+        print(self.situation)
         weapon = self.json_to_weapon(input)
         sequences = self.get_sequence(weapon,float(input['critical']))
         #行動順位並べ替えて、メイフェーズ処理
@@ -27,7 +29,7 @@ class play():
                 self.rival_move(action)
             elif type(action) == Judge.judge:
                 self.judge_move(action)
-            elif type(action) == P_weapon.pweapon or type(action) ==Support.support:
+            elif type(action) in[P_weapon.pweapon,Support.support,Memory.memory]:
                 self.myunit_move(weapon,input)
             else:
                 print('error!!!!')
@@ -53,6 +55,12 @@ class play():
         self.settings.set_rival_critical(turn)
         isAlive = self.situation.get_judge_alive_dict()
         self.settings.set_rival_aim(trend,turn,isAlive)
+        #各札を次ターンに打った時にLINKアピールになるかの判定
+        skill_history = self.situation.skill_history
+        for pweapon in  self.settings.pweapon_list:
+            idol = pweapon.info['idol_name']
+            pweapon.info['isLink'] = util.chk_link(idol,skill_history)
+        self.settings.memory_appeal.info['isLink'] = util.chk_link(self.settings.memory_appeal.info['idol_name'],skill_history)
         
         #泣いていたパッシブを消去し、残り発動回数をデクリメント
         
@@ -94,6 +102,7 @@ class play():
     
     def json_to_weapon(self,input):
         card_type,idx = list(input['weapon'])
+        # print(list(input['weapon']))
         idx = int(idx)
         # print(card_type,idx)
         aim = input['aim']
@@ -101,6 +110,8 @@ class play():
             weapon = self.settings.support_list[idx]
         elif card_type == 'P':
             weapon = self.settings.pweapon_list[idx]
+        elif card_type=='M':
+            weapon = self.settings.memory_appeal
         return weapon
            
     def myunit_move(self,weapon,input):
@@ -118,7 +129,12 @@ class play():
                 appeal_dict[col] += sum(ATK_dict.values())
                 #Excellent処理(aimと一致した属性の攻撃は2倍)
                 appeal_dict[col] += ATK_dict[col]  
-        # print(appeal_dict)
+        #スキル履歴にアイドルを追加
+        if weapon.info['card_type'] == 'S':
+            idol = weapon.info['idol_name']
+        else:
+            idol = self.settings.produce_idol
+        self.situation.skill_history.append(idol)
         self.situation.buff_list += put_buff
         for col in ['Vo','Da','Vi']:
             if appeal_dict[col]>0:
@@ -126,7 +142,6 @@ class play():
                 damage = min(judge.info['HP'],appeal_dict[col])
                 judge.info['HP'] -= damage
                 judge.info['score']['appeal']['My'] += damage
-                print(weapon.info['card_name'],damage,col)
                 self.give_star('My',judge,self.situation.Pstatus)
     
     def judge_move(self,judge:Judge.judge):
@@ -194,9 +209,7 @@ class play():
                     rival_dict[TA_idol].info['star'] += TA_point[self.settings.trend[judge.info['color']]-1]
                 else:
                     self.situation.Pstatus['star'] += TA_point[self.settings.trend[judge.info['color']]-1]
-        print('Mystar',self.situation.Pstatus['star'])
-            #TA付与
-    
+
     def get_sequence(self,weapon,self_critical):
         point_dict = {'m':1.5,'p':1.5,'g':1.1,'n':1.0,'b':0.5}
         sequence_point = {rival:point_dict[rival.info['critical']]+(ord(rival.info['name'])-65)/100 for rival in self.settings.rival_list}
@@ -220,4 +233,7 @@ class play():
             result_dict[rival.info['name']] = rival.info['star']
         result_dict['My'] = self.situation.Pstatus['star']
         return sorted(result_dict.items(), key=lambda x:x[1],reverse=True)
-        #%%
+
+        
+
+        

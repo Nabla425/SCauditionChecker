@@ -2,7 +2,7 @@ from flask import Flask, render_template,request,redirect,session,jsonify
 import Init,Game,util
 import pickle
 
-from transfer_class import Settings,Situation
+from transfer_class import Settings,Situation,Memory
 
 #jinja2とvuejsでデリミタが重複しているので変更
 class CustomFlask(Flask):
@@ -31,6 +31,7 @@ def audition():
     
 @app.route("/api/turn",methods=["GET","POST"])
 def exe_one_turn():
+    print('get request!!!!!')
     in_data = request.json
     settings = Settings.settings()
     settings.set_from_json(in_data['settings'])
@@ -53,7 +54,7 @@ def audition_init():
             support_list.append(Init.set_support(key))
         trend = {'Vo':1,'Da':2,'Vi':3}
         pweapon_list = Init.set_pweapon()
-        settings = Settings.settings(support_list,pweapon_list,audition_name[1:-1],29,trend,rival_list)
+        settings = Settings.settings(support_list,pweapon_list,audition_name[1:-1],29,trend,rival_list,'櫻木真乃',Memory.memory(idol_name='八宮めぐる'))
         settings.set_rival_mem_turn()
         situation=Situation.situation(judge_dict,{'Vo':300,'Da':500,'Vi':415,'Me':317,'memory_gage':0.1,'star':0})
         data ={'settings':settings.get_dict(),'situation':situation.get_dict()}

@@ -86,7 +86,7 @@ def set_pweapon():
     pweapon_list = []
     #花風4凸
     info = {
-        'idol':'櫻木真乃',
+        'idol_name':'八宮めぐる',
         'card_name':'花風smiley+',
         'card_type':'P',
         'ATKtype':'whole',
@@ -96,12 +96,13 @@ def set_pweapon():
             {"color":'Da',"buff":30,"turn":3,"name":"花風smiley+","fanc":None},
             {"color":'Vi',"buff":30,"turn":3,"name":"花風smiley+","fanc":None}
         ],
-        'link':['ATK',{'Vo':1.0,'Da':1.0,'Vi':1.0}]
+        'link':['ATK',{'Vo':1.0,'Da':1.0,'Vi':1.0}],
+        'isLink':False
     }
     p = P_weapon.pweapon(info)
     pweapon_list.append(p)
     info = {
-        'idol':'櫻木真乃',
+        'idol_name':'八宮めぐる',
         'card_name':'花風smiley',
         'card_type':'P',
         'ATKtype':'whole',
@@ -111,12 +112,13 @@ def set_pweapon():
             {"color":'Da',"buff":10,"turn":3,"name":"花風smiley+","fanc":None},
             {"color":'Vi',"buff":10,"turn":3,"name":"花風smiley+","fanc":None}
         ],
-        'link':['ATK',{'Vo':1.0,'Da':1.0,'Vi':1.0}]
+        'link':['ATK',{'Vo':1.0,'Da':1.0,'Vi':1.0}],
+        'isLink':False
     }
     p = P_weapon.pweapon(info)
     pweapon_list.append(p)
     info = {
-        'idol':'櫻木真乃',
+        'idol_name':'櫻木真乃',
         'card_name':'水面仰いで海の底',
         'card_type':'P',
         'ATKtype':'single',
@@ -125,12 +127,13 @@ def set_pweapon():
             {"color":'Da',"buff":30,"turn":3,"name":"水面仰いで海の底","fanc":None},
             {"color":'Vi',"buff":30,"turn":3,"name":"水面仰いで海の底","fanc":None},
         ],
-        'link':[None]
+        'link':[None],
+        'isLink':False
     }
     p = P_weapon.pweapon(info)
     pweapon_list.append(p)
     info = {
-        'idol':'櫻木真乃',
+        'idol_name':'櫻木真乃',
         'card_name':'駅線上の日常',
         'card_type':'P',
         'ATKtype':'single',    
@@ -139,7 +142,8 @@ def set_pweapon():
             {"color":'Da',"buff":20,"turn":3,"name":"駅線上の日常","fanc":None},
             {"color":'Vi',"buff":20,"turn":3,"name":"駅線上の日常","fanc":None},
         ],
-        'link':[None]
+        'link':[None],
+        'isLink':False
     }
     p = P_weapon.pweapon(info)
     pweapon_list.append(p)
