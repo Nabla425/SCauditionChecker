@@ -82,8 +82,8 @@
                 <label for="Bad">Bad</label>
             </div>
             <input id='submit' class='btn' type="submit"></input>
-            <div id='buff_box'>バフ
-            <br>
+            <p>バフ</p>
+            <div id='buff_box'>
             <ul>
                 <li v-for="buff in situation.buff_list">
                     [[buff.color]][[buff.buff]]%UP [[buff.turn]]ターン
@@ -92,14 +92,16 @@
             </div>
             <p>passive</p>
             <div id="passive_box">
-                <div class="passive_icon tooltip" :class="{ 'active_passive': p.isActive }" v-for="p in situation.passive_list" :key="p.id">
-                    [[p.short_name]]
-                    <span class="tooltiptext">[[p.text]][残り:[[p.rest]]回]</span>
+                <div class="tooltip" v-for="p in situation.passive_list" :key="p.id">
+                    <div class="passive_icon" :class="{ 'active_passive': p.isActive }">
+                        [[p.short_name]]
+                    </div>
+                    <span class="tooltiptext">[[p.text]] [残り: [[p.rest]]回]</span>
                 </div>
             </div>
+            <p>スキル履歴</p>
             <div id="skill_hist">
-                スキル履歴
-                <p class="skill_record" v-for='record in situation.skill_history'>[[record]]</p>
+                <div class="skill_record" v-for='record in situation.skill_history'>[[record]]</div>
             </div>
             <div id="btn-box">
                 <input type='button' class='reset-btn btn' @click="reset" value='Reset'></input>

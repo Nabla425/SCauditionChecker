@@ -54,7 +54,7 @@ def audition_init():
             support_list.append(Init.set_support(key))
         trend = {'Vo':1,'Da':2,'Vi':3}
         pweapon_list = Init.set_pweapon()
-        
+        '''
         # test_passive
         aquired_passive = [
             Passive.passive("きゅんコメ金",'履歴(まのひお)',3,100,Passive.history_requirement,[["Vi",75]],["櫻木真乃","風野灯織"]),
@@ -69,7 +69,6 @@ def audition_init():
             Passive.passive("駅線上の日常金",'駅金',3,10,Passive.after_turn_requirement,[["Da",65],["Vi",65]],3),
             Passive.passive("駅線上の日常白",'駅白',3,10,Passive.before_turn_requirement,[["Da",30],["Vi",30]],6),
         ]
-        '''
         
         settings = Settings.settings(
             support_list=support_list,pweapon_list=pweapon_list,audition_name=audition_name[1:-1],

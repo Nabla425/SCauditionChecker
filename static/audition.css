@@ -66,6 +66,7 @@
 
 .weapon{
     display: flex;
+    /* justify-content: center; */
     /* background-color: aquamarine; */
     flex-direction: column;
     padding: 5px 30px;
@@ -150,6 +151,7 @@ input[type="radio"]:checked +  label {
 }
 
 #passive_box{
+  width:300px;
   display:flex;
   justify-content: center;
   font-size: small;
@@ -160,15 +162,25 @@ input[type="radio"]:checked +  label {
   margin: 0;
 }
 
-.passive_icon{
+/* ボックスのスタイル */
+.passive_icon {
   list-style: none;
-  width :auto;
-  border:1px solid #e4e3e3;
+  width: auto;
   padding: 5px;
+  text-align: center;
+  background-color: #dfdfdf;
+  clip-path: polygon(
+      15% 0%, 
+      85% 0%, 
+      100% 50%, 
+      85% 100%, 
+      15% 100%, 
+      0% 50%
+  );
 }
 
-.active_passive{
-  background-color:gold;
+.active_passive {
+  background-color: gold;
 }
 
 /* ツールチップの基本スタイル */
@@ -177,6 +189,7 @@ input[type="radio"]:checked +  label {
   display: inline-block;
 }
 
+/* ツールチップテキストのスタイル */
 .tooltip .tooltiptext {
   visibility: hidden;
   width: 200px; /* ツールチップの幅 */
@@ -184,24 +197,20 @@ input[type="radio"]:checked +  label {
   text-align: center;
   padding: 5px 0;
   border-radius: 6px;
-
-  /* ツールチップの位置 */
   position: absolute;
   z-index: 1;
-  bottom: 125%; /* 親要素からの距離 */
+  bottom: calc(100% + 5px); /* ツールチップを下に配置し、ボックスとの間に5pxのスペースを設定 */
   left: 50%;
-  margin-left: -100px;
-
-  /* 矢印 */
+  transform: translateX(-50%); /* 水平方向の中央配置 */
   opacity: 0;
   transition: opacity 0.3s;
 }
 
+/* ホバー時のツールチップ表示 */
 .tooltip:hover .tooltiptext {
   visibility: visible;
   opacity: 1;
 }
-
 
 #buff_box>ul{
     display:flex;
@@ -213,19 +222,21 @@ input[type="radio"]:checked +  label {
 
 #buff_box li {
     list-style: none;
-    width :auto;
+    width :45%;
     border:1px solid #e4e3e3;
     padding: 5px;
 }
 
 #buff_box {
-    width: 250px;
+    width: 300px;
+    height: 120px;
+    overflow-y: scroll;
     font-size: small;
     padding: 10px;
     border: 1px solid #ccc;
     border-radius: 8px;
     background-color: #f9f9f9;
-    margin: 0 auto;
+    margin: 0;
 }
 
 .buff-list {
@@ -236,15 +247,34 @@ input[type="radio"]:checked +  label {
     margin: 0;
 }
 
+#skill_hist{
+  width:300px;
+  height:40px;
+  display:flex;
+  justify-content: start;
+  font-size: small;
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  background-color: #f9f9f9;
+  margin: 0;
+}
+
+.skill_record{
+  border: 1px solid #ccc;
+  padding: 5px;
+  margin:5px;
+}
+
 #log_box {
   position: absolute;
-  bottom: 10px;
+  bottom: 10%;
   width: 90%;
   height: 40%;
   padding: 10px;
   border: 1px solid #ccc;
   border-radius: 8px;
-  /* background-color: #f9f9f9; */
+  background-color: #F4F8FF; 
   margin: 0 auto;
   overflow-y: scroll;
 }
