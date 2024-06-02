@@ -1,5 +1,5 @@
 import json,random
-from transfer_class import Rival,Support,P_weapon,Memory
+from transfer_class import Rival,Support,P_weapon,Memory,Passive
 
 class settings:
     support_list:list
@@ -8,13 +8,14 @@ class settings:
     rival_list:list
     produce_idol:str
     memory_appeal:Memory.memory
+    aquired_passive:list
     week:int
     trend:dict
     #{'Vo':1,'Da':2,'Vi':3}
     
     def __init__(
             self,support_list=[],pweapon_list=[],audition_name='',
-            week=0,trend={},rival_list=[],idol='櫻木真乃',memory=Memory.memory()):
+            week=0,trend={},rival_list=[],idol='櫻木真乃',memory=Memory.memory(),aquired_passive=[]):
         self.support_list = support_list
         self.pweapon_list = pweapon_list
         self.audition_name = audition_name
@@ -23,6 +24,7 @@ class settings:
         self.rival_list=rival_list
         self.produce_idol = idol
         self.memory_appeal = memory
+        self.aquired_passive = aquired_passive
         self.set_rival_mem_turn()
         self.set_rival_critical(1)
         self.set_rival_aim(self.trend,1,{'Vo':True,'Da':True,'Vi':True})
@@ -35,6 +37,7 @@ class settings:
         ret_dict['audition_name'] = self.audition_name
         ret_dict['memory'] = self.memory_appeal.info
         ret_dict['produce_idol'] = self.produce_idol
+        ret_dict['aquired_passive'] = [passive.get_dict() for passive in self.aquired_passive]
         ret_dict['week'] = self.week
         ret_dict['trend']= self.trend
         return ret_dict
@@ -44,6 +47,11 @@ class settings:
         self.support_list = [Support.support(s) for s in in_dict['support_list']]
         self.pweapon_list = [P_weapon.pweapon(p) for p in in_dict['pweapon_list']]
         self.rival_list = [Rival.rival(r) for r in in_dict['rival_list']]
+        self.aquired_passive = []
+        for passive_info in in_dict['aquired_passive']:
+            passive = Passive.passive()
+            passive.set_from_json(passive_info)
+            self.aquired_passive += [passive]
         self.produce_idol = in_dict['produce_idol']
         memory = Memory.memory()
         memory.info = in_dict['memory']
@@ -85,7 +93,6 @@ class settings:
                     if random.random()<rate:
                         rival.info['mem_turn']=(i+1)
                         break
-            # print(rival.info['name'],rival.info['mem_turn'])
             
     def set_rival_aim(self,trend,turn,judge_alive_dict):
         for rival in self.rival_list:

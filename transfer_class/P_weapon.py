@@ -35,10 +35,10 @@ class pweapon():
         critical = float(input['critical'])
         ATK_dict = {}
         buff_dict = situation.get_buff()
+        passive_dict = situation.get_passive(settings.aquired_passive)
         put_buff=[]
         for col in color_list:
             color = aim if col == 'Ex' else col 
-            buff = 1
             # サポステの合計
             S_status = settings.sumSstatus(color)
             #アピール倍率
@@ -48,9 +48,9 @@ class pweapon():
                 if self.info['link'][0] == 'ATK':
                     weapon_rate += self.info['link'][1][color]
                 elif self.info['link'][0] == 'buff':
-                    put_buff += self.info['link'][1]
-                    
-            buff = 1 + buff_dict[color]/100
+                    put_buff += self.info['link'][1]        
+            buff = 1 + (buff_dict[color]+passive_dict[color])/100
+            # print(f'{color} b{buff_dict[color]} %UP p{passive_dict[color]} %UP →{buff}')
             iP = situation.Pstatus[color]
             ATK =int(int(int(iP*2 + S_status*0.2*(1+0.1*settings.week))*buff*critical) * weapon_rate)
             ATK_dict[col]=ATK

@@ -149,6 +149,60 @@ input[type="radio"]:checked +  label {
     justify-content: space-around;
 }
 
+#passive_box{
+  display:flex;
+  justify-content: center;
+  font-size: small;
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  background-color: #f9f9f9;
+  margin: 0;
+}
+
+.passive_icon{
+  list-style: none;
+  width :auto;
+  border:1px solid #e4e3e3;
+  padding: 5px;
+}
+
+.active_passive{
+  background-color:gold;
+}
+
+/* ツールチップの基本スタイル */
+.tooltip {
+  position: relative;
+  display: inline-block;
+}
+
+.tooltip .tooltiptext {
+  visibility: hidden;
+  width: 200px; /* ツールチップの幅 */
+  background-color: #c6ddff;
+  text-align: center;
+  padding: 5px 0;
+  border-radius: 6px;
+
+  /* ツールチップの位置 */
+  position: absolute;
+  z-index: 1;
+  bottom: 125%; /* 親要素からの距離 */
+  left: 50%;
+  margin-left: -100px;
+
+  /* 矢印 */
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+
+.tooltip:hover .tooltiptext {
+  visibility: visible;
+  opacity: 1;
+}
+
+
 #buff_box>ul{
     display:flex;
     flex-wrap: wrap;
@@ -180,6 +234,27 @@ input[type="radio"]:checked +  label {
     list-style-type: none;
     padding: 0;
     margin: 0;
+}
+
+#log_box {
+  position: absolute;
+  bottom: 10px;
+  width: 90%;
+  height: 40%;
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  /* background-color: #f9f9f9; */
+  margin: 0 auto;
+  overflow-y: scroll;
+}
+
+.log{
+  font-size: 70%;
+  white-space: pre-line;
+  margin: 5%;
+  border-top: #4f6d7a;
+  border-bottom: #4f6d7a;
 }
 
 #endScreen {

@@ -19,8 +19,7 @@ class play():
     '''
     # 終了条件を満たしていればTrueを返す
     def oneTurnProcess(self,input:dict)->bool:
-        print('exe_turn')
-        print(self.situation)
+        self.start_log()
         weapon = self.json_to_weapon(input)
         sequences = self.get_sequence(weapon,float(input['critical']))
         #行動順位並べ替えて、メイフェーズ処理
@@ -38,6 +37,7 @@ class play():
             self.result_dict = self.calc_result()
             return True
         #ターン終了
+        self.situation.log[-1] += '\n'
         self.situation.turn += 1
         if self.situation.turn > 6:
             self.result_dict = self.calc_result()
@@ -62,12 +62,10 @@ class play():
             pweapon.info['isLink'] = util.chk_link(idol,skill_history)
         self.settings.memory_appeal.info['isLink'] = util.chk_link(self.settings.memory_appeal.info['idol_name'],skill_history)
         
-        #泣いていたパッシブを消去し、残り発動回数をデクリメント
-        
-        #このターンに鳴くパッシブを決めてpassive_listに追加
+        #パッシブ発動の処理
+        self.situation.passive_process(self.settings)
         
         #バフの残りターンをデクリメント
-        # print(self.situation.buff_list)
         for contents in self.situation.buff_list:
             if contents['turn']>1:
                 contents['turn'] -=1
@@ -80,6 +78,7 @@ class play():
         aim = rival.info['aim']
         critical = rival.info['critical']
         damage_dict = {'Vo':0,'Da':0,'Vi':0}
+        
         if critical == 'm':
             for col in damage_dict.keys():
                 damage = int(rival.info['memATK'])
@@ -97,7 +96,9 @@ class play():
                 damage = min(damage,judge.info['HP'])
                 judge.info['HP'] -= int(damage)
                 judge.info['score']['appeal'][rival.info['name']] += int(damage)
-                print(rival.info['name'],critical,damage,col)
+                
+                self.situation.log[-1] += (f'{rival.info["name"]} {damage}({critical})→{col} \n')
+                # print(rival.info['name'],critical,damage,col)
             self.give_star(rival.info['name'],judge,rival)
     
     def json_to_weapon(self,input):
@@ -129,13 +130,17 @@ class play():
                 appeal_dict[col] += sum(ATK_dict.values())
                 #Excellent処理(aimと一致した属性の攻撃は2倍)
                 appeal_dict[col] += ATK_dict[col]  
+                
         #スキル履歴にアイドルを追加
         if weapon.info['card_type'] == 'S':
             idol = weapon.info['idol_name']
         else:
             idol = self.settings.produce_idol
+            
         self.situation.skill_history.append(idol)
         self.situation.buff_list += put_buff
+
+        self.situation.log[-1] += (weapon.info['card_name']+' ')
         for col in ['Vo','Da','Vi']:
             if appeal_dict[col]>0:
                 judge = self.situation.judge_dict[col]
@@ -143,6 +148,8 @@ class play():
                 judge.info['HP'] -= damage
                 judge.info['score']['appeal']['My'] += damage
                 self.give_star('My',judge,self.situation.Pstatus)
+                self.situation.log[-1] += (f'{damage}→{col} ')
+        self.situation.log[-1] += '\n'
     
     def judge_move(self,judge:Judge.judge):
         if judge.info['HP']>0:
@@ -152,15 +159,14 @@ class play():
             attention_list = [1 for idol in idols]
             #注目度に従って3名攻撃対象を選ぶ
             selected = self.choice_idol_damaged(idols,attention_list)
-            print(judge.info['color'],'judge->',end = '')
+            # print(judge.info['color'],'judge->',end = '')
             for idol in selected:
                 if idol == 'Me':
-                    print('Myunit',end = ' ')
+                    # print('Myunit',end = ' ')
                     self.situation.Pstatus['Me'] -= judge.info['ATK']
                 else:
-                    print(idol.info['name'],end=' ')
+                    # print(idol.info['name'],end=' ')
                     idol.info['HP'] -= judge.info['ATK']
-            print('')
     
     def choice_idol_damaged(self,idols,attention):
         target_list = []
@@ -234,6 +240,19 @@ class play():
         result_dict['My'] = self.situation.Pstatus['star']
         return sorted(result_dict.items(), key=lambda x:x[1],reverse=True)
 
-        
+    def start_log(self):
+        log = ''
+        log += ( str(self.situation.turn) + 'ターン目\n')
+        log += 'PASSIVE:'
+        for passive in self.situation.passive_list:
+            if passive['isActive']:
+                log += passive['name']
+        log += '\n'
+        tmp = [buff['name'] for buff in self.situation.buff_list]
+        tmp = list(set(tmp))
+        log += ('BUFF:' + ''.join(tmp))
+        log += '\n'
+        # print(self.situation.buff_list)
+        self.situation.log[-1] += log
 
         

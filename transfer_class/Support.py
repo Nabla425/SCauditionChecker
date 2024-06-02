@@ -31,13 +31,14 @@ class support() :
         critical = float(input['critical'])
         ATK_dict = {}
         buff_dict = situation.get_buff()
+        passive_dict = situation.get_passive(settings.aquired_passive)
         for col in color_list:
             color = aim if col == 'Ex' else col 
             # サポステの合計
             S_status = settings.sumSstatus(color)
             #アピール倍率
             weapon_rate = self.info['appeal'][col]
-            buff = 1 + buff_dict[color]/100
+            buff = 1 + (buff_dict[color]+passive_dict[color])/100
             iS = self.info['status'][color]
             iP = situation.Pstatus[color]
             ATK =int(int(int(iP*0.5 + (S_status + 3*iS) * (1 + 0.1*settings.week) * 0.2)*buff*critical) * weapon_rate)
