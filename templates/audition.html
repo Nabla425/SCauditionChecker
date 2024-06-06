@@ -60,28 +60,33 @@
                 <span class="islink" v-if = 'settings.memory.isLink'>LINK</span></lavel>
         </div>
         <div class='items'>
-            <div class="choose_judge">
-                <div v-for='(judge,col) in situation.judge_dict'>
-                <input type="radio" :id="col" name="aim" :value="col" checked required>
-                <label :for="col">
-                    <span class="judge_name">[[col]] </span>   
-                    <span class="trend">流行:[[ settings.trend[col] ]]位</span>
-                    <p><meter min="0" :max="judge.Max_HP" :value="judge.HP"></meter>[[judge.HP]]</p>
-                </label>
+            <div id="judge_critical_box">
+                <div class="choose_judge">
+                    <P>審査員</P>
+                    <div v-for='(judge,col) in situation.judge_dict'>
+                    <input type="radio" :id="col" name="aim" :value="col" checked required>
+                    <label :for="col">
+                        <span class="judge_name">[[col]] </span>   
+                        <span class="trend">流行:[[ settings.trend[col] ]]位</span>
+                        <p><meter min="0" :max="judge.Max_HP" :value="judge.HP"></meter>[[judge.HP]]</p>
+                    </label>
+                    </div>
+                </div>
+                
+                <div class="choose_critical">
+                    <p class="">判定</p>
+                    <input type="radio" id="Perfect" name="critical" value=1.5 checked required>
+                    <label for="Perfect">Perfect</label>
+                    <input type="radio" id="Good" name="critical" value=1.1>
+                    <label for="Good">Good</label>
+                    <input type="radio" id="Normal" name="critical" value=1.0>
+                    <label for="Normal">Normal</label>
+                    <input type="radio" id="Bad" name="clitical" value=0.5>
+                    <label for="Bad">Bad</label>
+                    <input id='submit' class='btn' type="submit"></input>
                 </div>
             </div>
-            <p class="">判定</p>
-            <div class="choose_critical">
-                <input type="radio" id="Perfect" name="critical" value=1.5 checked required>
-                <label for="Perfect">Perfect</label>
-                <input type="radio" id="Good" name="critical" value=1.1>
-                <label for="Good">Good</label>
-                <input type="radio" id="Normal" name="critical" value=1.0>
-                <label for="Normal">Normal</label>
-                <input type="radio" id="Bad" name="clitical" value=0.5>
-                <label for="Bad">Bad</label>
-            </div>
-            <input id='submit' class='btn' type="submit"></input>
+            
             <p>バフ</p>
             <div id='buff_box'>
             <ul>

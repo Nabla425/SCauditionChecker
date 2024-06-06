@@ -1,44 +1,37 @@
 import sqlite3
 from transfer_class import Rival,Judge,Support,P_weapon
-import json
+import pandas as pd
 
 def init_audition(audition_name):
-    db_name = "datas/data.db"
-    conn = sqlite3.connect(db_name)
-    c = conn.cursor()
+    df = pd.read_csv('datas/Audition.csv',encoding='shift-jis',index_col=0).T
     rival_list = []
     judge_dict = {}
-    sql = "SELECT 興味値,メンタルダメージ FROM audition WHERE オーディション名 = %s" % audition_name
-    c.execute(sql)
-    fetch = list(c.fetchone())
+    info = df[audition_name]
     for col in ["Vo","Da","Vi"]:
         info_dict = {}
         info_dict['color']=col
-        info_dict['HP']=fetch[0]
-        info_dict['Max_HP']=fetch[0]
-        info_dict['ATK']=fetch[1]
+        info_dict['HP']=info['興味値']
+        info_dict['Max_HP']=info['興味値']
+        info_dict['ATK']=info['メンタルダメージ']
         info_dict['DEF']=1
         info_dict['buff']=[]
         judge_dict[col]=Judge.judge(info_dict)
     for name in ['A','B','C','D','E']:
-        sql = "SELECT 興味値,基礎攻撃力,思い出火力,%s属性,%s変遷種,%s変遷順 FROM audition WHERE オーディション名 = %s" % (name,name,name,audition_name)
-        c.execute(sql)
-        fetch = list(c.fetchone())
-        info_dict = {}
-        info_dict['name']=name
-        info_dict['HP']=fetch[0]
-        info_dict['baseATK']=fetch[1]
-        info_dict['memATK']=fetch[2]
-        info_dict['color']=fetch[3]
-        info_dict['choice_type']=fetch[4]
-        info_dict['choice_order']=[int(od) for od in fetch[5].split(',')]
-        info_dict['star']=0
-        info_dict['critical'] = ''
-        info_dict['aim'] = ''
-        info_dict['mem_turn'] = 0
-        
-        r = Rival.rival(info_dict)
-        rival_list.append(r)
+        if info[f'{name}属性']!='NONE':
+            info_dict = {}
+            info_dict['name']=name
+            info_dict['HP']=500
+            info_dict['baseATK']=info['基礎攻撃力']
+            info_dict['memATK']=info['思い出火力']
+            info_dict['color']=info[f'{name}属性']
+            info_dict['choice_type']=info[f'{name}変遷種']
+            info_dict['choice_order']=[int(od) for od in info[f'{name}変遷順'].split(',')]
+            info_dict['star']=0
+            info_dict['critical'] = ''
+            info_dict['aim'] = ''
+            info_dict['mem_turn'] = 0
+            r = Rival.rival(info_dict)
+            rival_list.append(r)
     return rival_list,judge_dict
 
 def set_support(key):
@@ -74,7 +67,7 @@ def set_support(key):
                         'buff':int(buff['%s_buff'%color][i]),
                         'turn':int(buff['%s_buff_coT'%color][i]),
                         'name':fetch[3]+'(S)',
-                        'fanc':None
+                        'val':None
                         }
                 info_dict['buff'].append(ret)
     #(4, '櫻木真乃駅線上の日常4凸', '櫻木真乃', '駅線上の日常', '4凸', '150', '225', '225', '0', '2', '2', '0', '0', '0', '0', '0', '0', '0')

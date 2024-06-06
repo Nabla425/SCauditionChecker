@@ -70,3 +70,4 @@ class pweapon():
         
         c.commit()
         c.close()
+        #%%

@@ -13,8 +13,9 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     // Hide sidebars by default on small screens
-    if (window.innerWidth < 1000) {
+    if (window.innerWidth < 6000) {
         leftSidebar.classList.add('collapsed');
         rightSidebar.classList.add('collapsed');
     }
 });
+

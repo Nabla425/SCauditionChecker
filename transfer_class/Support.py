@@ -45,6 +45,30 @@ class support() :
             ATK_dict[col]=ATK
         put_buff = self.info['buff']
         return ATK_dict,put_buff
+    
+    def push2DB(self):
+        import Entity
+        import DataHandler as DH
+        entity = Entity.Support()
+        entity.name = self.info['card_name']
+        entity.idol = self.info['idol_name']
+        entity.totu = int(self.info['totu'][0])
+        entity.Vo = self.info['status']['Vo']
+        entity.Da = self.info['status']['Da']
+        entity.Vi = self.info['status']['Vi']
+        entity.Vo_rate = self.info['appeal']['Vo']
+        entity.Da_rate = self.info['appeal']['Da']
+        entity.Vi_rate = self.info['appeal']['Vi']
+        for buff in self.info['buff']:
+            print(buff)
+            buffEntity = Entity.Buff(
+                color=buff['color'],
+                rate=buff['buff'],
+                turn=buff['turn'],
+                val=str(buff['val']),
+            )
+            entity.buff_relations.append(buffEntity)
+        DH.push2DB(entity)
             
 
         

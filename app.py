@@ -46,7 +46,7 @@ def exe_one_turn():
 
 @app.route("/api/init",methods=["GET","POST"])
 def audition_init():
-        audition_name = '"歌姫楽宴"'
+        audition_name = '歌姫楽宴'
         rival_list,judge_dict = Init.init_audition(audition_name)
         support_keys = ['"櫻木真乃駅線上の日常4凸"','"風野灯織水面を仰いで海の底4凸"','"小宮果穂反撃の狼煙をあげよ！4凸"','"園田智代子kimagure全力ビート！4凸"']
         support_list = []
