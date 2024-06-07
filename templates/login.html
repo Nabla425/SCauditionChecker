@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{%block content%}
+    <h2>Login</h2>
+    <form class='user-form' method="POST" action="{{ url_for('login') }}">
+        <label for="username">Username:</label>
+        <input type="text" name="username" required><br>
+        <label for="password">Password:</label>
+        <input type="password" name="password" required><br>
+        <button type="submit">Login</button>
+    </form>
+
+    <div class="sidebar right" id="right-sidebar">
+    </div>
+    {% with messages = get_flashed_messages() %}
+        {% if messages %}
+            <ul>
+                {% for message in messages %}
+                    <li>{{ message }}</li>
+                {% endfor %}
+            </ul>
+        {% endif %}
+    {% endwith %}
+{%endblock%}

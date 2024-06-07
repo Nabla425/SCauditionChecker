@@ -82,3 +82,4 @@ class PassiveRate(Base):
     created_at = Column(TIMESTAMP, server_default='CURRENT_TIMESTAMP', onupdate='CURRENT_TIMESTAMP')
     created_by = Column(String(10), default='admin')
     passive = relationship('Passive', backref='rates')
+    

@@ -8,15 +8,32 @@
         <link rel="preconnect" href="https://fonts.googleapis.com">
         <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
         <link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@500;700&display=swap" rel="stylesheet">
+        <script>
+            function navigate(url) {
+                window.location.href = url;
+            }
+        </script>
     </head>
 <body>
+
     <header>
         <div class="header-title">SC編成チェッカー</div>
+
         <div class="header-buttons">
-            <button class="btn">Sign In</button>
-            <button class="btn">Sign Up</button>
+            <div id="userinfo">
+                <p>ログイン中</p><p>{{session['username']}}P</p>
+            </div>
+            <button class="btn" onclick="navigate('/login')">ログイン</button>
+            <button class="btn" onclick="navigate('/register')">新規登録</button>
+            <button class="btn" onclick="navigate('/logout')">ログアウト</button>
         </div>
     </header>
+
+    <main>
+        {% block content %}
+        {% endblock%}
+    </main>
+
     <div class="sidebar left" id="left-sidebar">
         <!-- <button class="toggle-btn" id="toggle-left-btn">☰</button> -->
         <nav>
@@ -37,10 +54,7 @@
             <a href="https://discord.com/your_discord" target="_blank">Discord</a>
         </div>
     </div>
-    <main>
-        {% block content %}
-        {% endblock%}
-    </main>
+
     <script src="static/script.js"></script>
 </body>
 </html>

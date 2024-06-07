@@ -1,6 +1,8 @@
-from flask import Flask, render_template,request,redirect,session,jsonify
+from flask import Flask, render_template,request,redirect,session,jsonify,url_for,flash
 import Init,Game,util
 from transfer_class import Passive
+from flask_bcrypt import Bcrypt
+from flask_sqlalchemy import SQLAlchemy
 
 from transfer_class import Settings,Situation,Memory
 
@@ -19,7 +21,19 @@ class CustomFlask(Flask):
 app = Flask(__name__)
 app.secret_key = 'test'
 app.config['JSON_SORT_KEYS'] = False
-# app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(minutes=1)
+# MySQLの設定
+# SQLAlchemyの設定
+app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://root:AdminAdmin@localhost/scdb'
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+
+db = SQLAlchemy(app)
+bcrypt = Bcrypt(app)
+
+class Users(db.Model):
+    username = db.Column(db.String(20), primary_key=True, nullable=False, unique=True)
+    password = db.Column(db.String(255), nullable=False)
+    oath_lv = db.Column(db.Integer, nullable=False, default=0)
+    created = db.Column(db.TIMESTAMP, nullable=False, server_default=db.func.current_timestamp())
  
 @app.route("/",methods=['GET','POST'])
 def index():
@@ -86,14 +100,53 @@ def back_one_turn():
     if len(session['history'])>0:
         session['situation'] = session['history'].pop()
     return redirect('/audition')
-    
-@app.route('/api/hello')
-def api_test():
-    print('api required')
-    return{'message':'testAPI'}
 
-@app.route('/test')
-def test():
-    return render_template('test.html')
+#ログイン関係
+@app.route('/register', methods=['GET', 'POST'])
+def register():
+    if request.method == 'POST':
+        username = request.form['username']
+        password = request.form['password']
+        hashed_password = bcrypt.generate_password_hash(password).decode('utf-8')
+        # ユーザーが既に存在するかチェック
+        existing_user = Users.query.filter_by(username=username).first()
+        if existing_user:
+            flash('ユーザ名はすでに登録されています。', 'error')
+            return redirect(url_for('register'))  
+        new_user = Users(username=username, password=hashed_password)
+        db.session.add(new_user)
+        db.session.commit()
+        
+        return redirect(url_for('login'))
+    
+    return render_template('/register.html')
+
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+    if request.method == 'POST':
+        username = request.form['username']
+        password_candidate = request.form['password']
+        
+        user = Users.query.filter_by(username=username).first()
+        
+        if user and bcrypt.check_password_hash(user.password, password_candidate):
+            session['logged_in'] = True
+            session['username'] = username
+            session['oath_lv'] = user.oath_lv
+            return redirect(url_for('audition'))
+        else:
+            return 'Invalid username or password'
+    
+    return render_template('login.html')
+
+@app.route('/logout')
+def logout():
+    session.clear()
+    return redirect(url_for('audition'))
+    
+
+
+if __name__ == '__main__':
+    app.run(debug=True)
 
 

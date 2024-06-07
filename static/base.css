@@ -7,6 +7,10 @@ body {
     padding: 0;
     height: 100%;
 }
+*{
+    font-weight: 700;
+    margin:0px;
+}
 
 header {
     width: 100%;
@@ -21,9 +25,15 @@ header {
     box-sizing: border-box;
 }
 
+
+
 .header-title {
     font-size: 1.7em;
     color: #ffffff;
+}
+
+.header-buttons{
+    display:flex;
 }
 
 .header-buttons .btn {
@@ -38,8 +48,12 @@ header {
 
 .header-buttons .btn:hover {
     background-color: #679ace;
+    align:center;
 }
 
+#userinfo p{
+    text-align: center;
+}
 .sidebar {
     position: fixed;
     top: 5em;
@@ -61,6 +75,7 @@ header {
     top:5em;
     width: 20.97%;
     right: 0;
+    z-index: 2;
 }
 
 .sidebar nav ul {
@@ -182,3 +197,8 @@ main {
         margin-right: 400px;
     }
 }
+
+.user-form{
+    margin-top:4em;
+}
+
