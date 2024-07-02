@@ -2,8 +2,20 @@ from sqlalchemy import create_engine, Column, Integer, String, Float, ForeignKey
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship, sessionmaker, scoped_session
 import Entity
-from sqlalchemy.exc import IntegrityError
-from sqlalchemy.orm.exc import NoResultFound
+from dotenv import load_dotenv
+import os
+
+# .envファイルの環境変数を読み込む
+load_dotenv()
+
+# 環境変数からデータベース接続情報を取得する
+db_user = os.getenv('DB_USER')
+db_password = os.getenv('DB_PASSWORD')
+db_host = os.getenv('DB_HOST')
+db_name = os.getenv('DB_NAME')
+
+# SQLAlchemyの接続文字列を構築する
+connection_string = f'mysql+pymysql://{db_user}:{db_password}@{db_host}/{db_name}'
 
 # 適切なDB接続情報を指定してエンジンを作成します。
 engine = create_engine('mysql+pymysql://root:AdminAdmin@localhost/scdb',echo=False)
