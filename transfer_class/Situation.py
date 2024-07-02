@@ -1,5 +1,5 @@
 import json
-from transfer_class import Judge
+from transfer_class import Judge,Passive
 
 class situation:
     hand_weapon:list
@@ -22,8 +22,13 @@ class situation:
         self.turn = 1;
         self.passive_list = []
         self.log = ['']
-        for passive in passive_list:
-            self.passive_list.append({'name':passive._name,'rest':passive._times,'isActieve':False,'text':passive.get_text(),'short_name':passive._short_name})
+        if len(passive_list)>0:
+            if type(passive_list[0]) == Passive:
+                for passive in passive_list:
+                    self.passive_list.append({'name':passive._name,'rest':passive._times,'isActieve':False,'text':passive.get_text(),'short_name':passive._short_name})
+            else:self.passive_list = passive_list
+        else:
+            self.passive_list = passive_list
         
     def get_dict(self):
         ret_dict = self.__dict__

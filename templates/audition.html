@@ -2,32 +2,64 @@
     <link rel="stylesheet" href="static/audition.css">
     <script src="https://cdn.jsdelivr.net/npm/vue@2"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.14.0/Sortable.min.js"></script>
+    <script>
+        function navigate(url) {
+            window.location.href = url;
+        }
+    </script>
 </head>
 {% extends "base.html" %}
 {%block content%}
 <div id="app">
     <form class="container" @submit.prevent="handleSubmit">
         <div class='items'>
-            <div class="audition_explain">
-                <p>[[settings.audition_name]] Turn:[[situation.turn]]</p>
-                <p>[[settings.produce_idol]]</p>
+            <div class="button-container">
+
+                <div class="audition_explain">
+                    <h2 v-if="!isEditAudition">[[settings.audition_name]] Turn:[[situation.turn]]</h2>
+                    <p v-else>オーディション名：
+                        <select v-model="settings.audition_name">
+                            <option v-for="audition in audition_names" :key="audition">[[ audition ]]</option>
+                        </select>
+                    </p>
+                    <p v-if="!isEditAudition">Season[[Math.floor(settings.week/8)]] 残り[[settings.week%8]]週</p>
+                    <p v-else>Season <input class="select_season" type="number" v-model.number="season[0]" max="4" min="1">
+                        残り<input class="select_season" type="number" v-model.number="season[1]" max="8" min="1"> 週</p>
+                </div>
+                <input type='button' class='edit-audition-btn' value='⚙' title="オーディションの設定を変更します" @click="toggleEditAudition">
+                <input type='button' class='reload-audition-btn' value='↻' title="対面の判定を再生成します" @click="reloadAudition">
             </div>
-            <div class = 'rival' v-for='rival in settings.rival_list'>
-                <p>ライバル[[rival.name]] </p>
-                <p>判定:[[rival.critical]] ★[[rival.star]]</p>
-                <p v-if='rival.aim==rival.color'>[[rival.baseATK*2]]→[[rival.aim]]</p>
-                <p v-else>[[rival.baseATK]]→[[rival.aim]]</p>
+            <div v-if="!isEditAudition">
+                <div class = 'rival' v-for='rival in settings.rival_list'>
+                    <p>ライバル[[rival.name]] </p>
+                    <p>判定:[[rival.critical]] ★[[rival.star]]</p>
+                    <p v-if='rival.aim==rival.color'>[[rival.baseATK*2]]→[[rival.aim]]</p>
+                    <p v-else>[[rival.baseATK]]→[[rival.aim]]</p>
+                </div>
+            </div>
+            <div class="trend-container" v-else>
+                <p>流行</p>
+                <p>1位：<select v-model="trend[0]"><option value="Vo">Vo</option><option value="Da">Da</option><option value="Vi">Vi</option></select></p>
+                <p>2位：<select v-model="trend[1]"><option value="Vo">Vo</option><option value="Da">Da</option><option value="Vi">Vi</option></select></p>
+                <p>1位：<select v-model="trend[2]"><option value="Vo">Vo</option><option value="Da">Da</option><option value="Vi">Vi</option></select></p>
             </div>
             <div class="status_box">
-                <p>Vo:[[situation.Pstatus.Vo]]</p>
-                <p>Da:[[situation.Pstatus.Da]]</p>
-                <p>Vi:[[situation.Pstatus.Vi]]</p>
-                <p>Me:[[situation.Pstatus.Me]]</p>
-                <p>Memory[[(situation.Pstatus.memory_gage*100)]]%  ★[[situation.Pstatus.star]]</p>
+                <p>ステータス</p>
+                <p v-if="!isEditAudition">　Vo:[[situation.Pstatus.Vo]]</p>
+                <p v-else>Vo:<input type="number" placeholder="situation.Pstatus.Vo" v-model="situation.Pstatus.Vo"></p>
+                <p v-if="!isEditAudition">　Da:[[situation.Pstatus.Da]]</p>
+                <p v-else>Da:<input type="number" placeholder="situation.Pstatus.Da" v-model="situation.Pstatus.Da"></p>
+                <p v-if="!isEditAudition">　Vi:[[situation.Pstatus.Vi]]</p>
+                <p v-else>Vi:<input type="number" placeholder="situation.Pstatus.Vi" v-model="situation.Pstatus.Vi"></p>
+                <p v-if="!isEditAudition">　Me:[[situation.Pstatus.Me]]</p>
+                <p v-else>Me:<input type="number" placeholder="situation.Pstatus.Me" v-model="situation.Pstatus.Me"></p>
+                <p>　★[[situation.Pstatus.star]]</p>
             </div>
         </div>
 
         <div class='weapon'>
+            <p>アピール札</p>
             <div v-for='(support, index) in settings.support_list' :key="support.key">
                 <input type="radio" :id="support.key" name="weapon" :value="'S' + index" required>
                 <label :for="support.key">
@@ -57,7 +89,7 @@
             </div>
             <input type="radio"  id='memory' name="weapon" value="M0" required>
             <label for="memory">思い出アピール [Lv[[settings.memory.lv]]] 
-                <span class="islink" v-if = 'settings.memory.isLink'>LINK</span></lavel>
+                <span class="islink" v-if = 'settings.memory.isLink'>LINK</span>
         </div>
         <div class='items'>
             <div id="judge_critical_box">
@@ -83,7 +115,7 @@
                     <label for="Normal">Normal</label>
                     <input type="radio" id="Bad" name="clitical" value=0.5>
                     <label for="Bad">Bad</label>
-                    <input id='submit' class='btn' type="submit"></input>
+                    <input id='submit' class='btn' type="submit">
                 </div>
             </div>
             
@@ -95,7 +127,7 @@
                 </li>
             </ul>   
             </div>
-            <p>passive</p>
+            <p>パッシブ内容</p>
             <div id="passive_box">
                 <div class="tooltip" v-for="p in situation.passive_list" :key="p.id">
                     <div class="passive_icon" :class="{ 'active_passive': p.isActive }">
@@ -109,25 +141,76 @@
                 <div class="skill_record" v-for='record in situation.skill_history'>[[record]]</div>
             </div>
             <div id="btn-box">
-                <input type='button' class='reset-btn btn' @click="reset" value='Reset'></input>
-                <input type='button' class='back-btn btn' @click="back" value='1ターン戻る'></input>
+                <input type='button' class='reset-btn btn' @click="reset" value='Reset'>
+                <input type='button' class='back-btn btn' @click="back" value='1ターン戻る'>
             </div>
         </div>
     </form>
-    
+
     <!-- サイドバー -->
     <div class="sidebar right" id="right-sidebar">
+        <div id="side_deck_bock">
+            <p>編成  
+                <button type="button"  @click="editing = true" v-if="!editing">変更</button>
+                <button type="button" @click="saveSelection" v-else>決定</button>
+            </p>
+            <form id="deck-form">
+                <div v-if="!editing">
+                    <div class="deck">
+                        <label class="deck-btn">
+                            <p>[[ selectedDeck.name ]]</p>
+                            <img :src="`/static/img/${selectedDeck.produce_idol}/${selectedDeck.produce_card}.png`" :alt="selectedDeck.produce_card">
+                            <img :src="`/static/img/${selectedDeck.support1.idol}/${selectedDeck.support1.name}.png`" :alt="selectedDeck.support1.name">
+                            <img :src="`/static/img/${selectedDeck.support2.idol}/${selectedDeck.support2.name}.png`" :alt="selectedDeck.support2.name">
+                            <img :src="`/static/img/${selectedDeck.support3.idol}/${selectedDeck.support3.name}.png`" :alt="selectedDeck.support3.name">
+                            <img :src="`/static/img/${selectedDeck.support4.idol}/${selectedDeck.support4.name}.png`" :alt="selectedDeck.support4.name">
+                        </label>
+                    </div>
+                </div>
+                <div v-else>
+                    <div class="deck" v-for="(deck, index) in all_deck" :key="deck.id">
+                        <input type="radio" :id="deck.deck_id" name="deck" :value="index" v-model="selectedDeckIdx">
+                        <label class="deck-btn" :for="deck.deck_id">
+                            <p>[[ deck.name ]]</p>
+                            <img :src="`/static/img/${deck.produce_idol}/${deck.produce_card}.png`" :alt="deck.produce_card">
+                            <img :src="`/static/img/${deck.support1.idol}/${deck.support1.name}.png`" :alt="deck.support1.name">
+                            <img :src="`/static/img/${deck.support2.idol}/${deck.support2.name}.png`" :alt="deck.support2.name">
+                            <img :src="`/static/img/${deck.support3.idol}/${deck.support3.name}.png`" :alt="deck.support3.name">
+                            <img :src="`/static/img/${deck.support4.idol}/${deck.support4.name}.png`" :alt="deck.support4.name">
+                            <button type="button" class="delete-btn" @click="deleteDeck(deck)">削除</button>
+                        </label>
+                    </div>
+                </div>
+            </form>
+        
+            <div id="deck_detail">
+                <div>
+                    <p>取得札</p>
+                    <ul class="side_weapon" v-for="pweapon in settings.pweapon_list" :key="pweapon.card_name">
+                        <li>[[pweapon.card_name]]
+                    </ul> 
+                </div>
+                <div>
+                    <p>取得パッシブ</p>
+                    <ul class="side_weapon" v-for="passive in situation.passive_list">
+                        <li>[[passive.short_name]]
+                    </ul> 
+            </div>
+            </div>
+            <input type="button" class="btn" value='編集する' @click="editPage">
+        </div>
         <div id="log_box">
             <p>ログ</p>
             <div class='log' v-for="log in situation.log">[[log]]</div>
         </div>  
     </div>
+    <!-- <pre>[[settings.trend]]</pre> -->
     
     <!-- リザルト画面 -->
     <div id="endScreen">
         <div class="end-screen-content">
-          <h1>終了</h1>
-          <div class="result-box">
+            <h1>終了</h1>
+            <div class="result-box">
             <div id="ranking_box">
                 <p class="ranking" v-for='(star,idol,index) in result'>[[index+1]]位　[[idol]]　★[[star]]</p>
             </div>
@@ -163,148 +246,17 @@
                         [[idol]]: [[ATK]]
                     </p>
                 </div>
-            </div>
-                       
-          </div>
-          <div class="buttons">
+            </div>                       
+        </div>
+        <div class="buttons">
             <button id="backButton" class='back-btn' @click="back">1ターン戻る</button>
             <button id="restartButton" class='reset-btn' @click="reset">最初から</button>
-          </div>
+        </div>
         </div>
     </div>
-
-      
 </div>
 
-<script src="static/script.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/vue@2"></script>
-<script>
-    new Vue({
-        el: '#app',
-        delimiters: ["[[", "]]"],
-        data: {
-            settings: {},
-            situation: {},
-            history: [], // 状況の履歴を保持するための配列
-            isFinish:false,
-            result:{}
-        },
-        mounted() {
-            fetch('/api/init')
-                .then(response => response.json())
-                .then(data => {
-                    this.settings = data.settings;
-                    this.situation = data.situation;
-                    console.log(JSON.stringify(this.situation, null, 2));
-                    console.log(JSON.stringify(this.settings, null, 2));
-                    
-                })
-                .catch(error => {
-                    console.error('Error:', error);
-                });
-            
-        },
-        methods: {
-            handleSubmit() {
-                
-                // 現在の状況を履歴に保存
-                this.history.push(JSON.parse(JSON.stringify(this.situation)));
+<script src="static/audition.js"></script>
 
-                const data = {
-                    form: Object.fromEntries(new FormData(document.querySelector('form'))),
-                    situation: this.situation,
-                    settings: this.settings
-                };
-
-                fetch('/api/turn', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json' // データがJSON形式であることを明示
-                    },
-                    body: JSON.stringify(data) // オブジェクトをJSON形式の文字列に変換して送信
-                })
-                .then(response => response.json()) // レスポンスをJSONとしてパース
-                .then(data => {
-                    console.log('Received data:', JSON.stringify(data, null, 2)); // 受け取ったデータをコンソールに出力
-                    this.settings = data.settings;
-                    this.situation = data.situation;
-                    this.result = data.result;
-                    if(data.isEnd){
-                        document.getElementById('endScreen').style.display = 'flex';
-                        console.log(this.result)
-                        this.drawChart('Vo');
-                        this.drawChart('Da');
-                        this.drawChart('Vi');
-                      }
-                })
-                .catch(error => {
-                    console.error('Error:', error);
-                });
-            },
-            back() {
-                document.getElementById('endScreen').style.display = 'none';
-                if (this.history.length > 0) {
-                    this.situation = this.history.pop(); // 履歴から最後の状況を取り出して現在の状況に設定
-                }
-            },
-            reset(){
-                document.getElementById('endScreen').style.display = 'none';
-                fetch('/api/init')
-                .then(response => response.json())
-                .then(data => {
-                    this.situation = data.situation;
-                    this.history = [];
-                })
-                .catch(error => {
-                    console.error('Error:', error);
-                });
-            },
-            drawChart(col) {
-                // データの準備
-                const appealScores = this.situation.judge_dict[col].score.appeal;
-                const labels = Object.keys(appealScores);
-                const data = Object.values(appealScores);
-
-                var ctx = document.getElementById(col+'PieChart').getContext('2d');
-                var myPieChart = new Chart(ctx, {
-                    type: 'pie',
-                    data: {
-                        labels: labels,
-                        datasets: [{
-                            data: data,
-                            backgroundColor: [
-                                'rgba(255, 99, 132, 0.2)',
-                                'rgba(54, 162, 235, 0.2)',
-                                'rgba(255, 206, 86, 0.2)',
-                                'rgba(75, 192, 192, 0.2)',
-                                'rgba(153, 102, 255, 0.2)',
-                                'rgba(255, 159, 64, 0.2)'
-                            ],
-                            borderColor: [
-                                'rgba(255, 99, 132, 1)',
-                                'rgba(54, 162, 235, 1)',
-                                'rgba(255, 206, 86, 1)',
-                                'rgba(75, 192, 192, 1)',
-                                'rgba(153, 102, 255, 1)',
-                                'rgba(255, 159, 64, 1)'
-                            ],
-                            borderWidth: 1
-                        }]
-                    },
-                    options: {
-                        responsive: false,
-                        maintainAspectRatio: true,
-                        plugins:{
-                            legend: {
-                            display: false
-                        }
-                    }
-                    }
-
-                
-                });
-            }
-        }
-    });
-</script>
 {%endblock%}

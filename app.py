@@ -3,6 +3,9 @@ import Init,Game,util
 from transfer_class import Passive
 from flask_bcrypt import Bcrypt
 from flask_sqlalchemy import SQLAlchemy
+import DataHandler as DH
+from transfer_class import Support,P_weapon
+import Entity
 
 from transfer_class import Settings,Situation,Memory
 
@@ -16,15 +19,22 @@ class CustomFlask(Flask):
     variable_end_string='))',
     comment_start_string='(#',
     comment_end_string='#)',
-  ))
+))
 
 app = Flask(__name__)
 app.secret_key = 'test'
 app.config['JSON_SORT_KEYS'] = False
+app.secret_key = 'test'
+app.config['JSON_SORT_KEYS'] = False
+app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://root:AdminAdmin@localhost/scdb'
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+app.config['SESSION_TYPE'] = 'filesystem'
+app.config['SESSION_PERMANENT'] = False
 # MySQLの設定
 # SQLAlchemyの設定
 app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://root:AdminAdmin@localhost/scdb'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+
 
 db = SQLAlchemy(app)
 bcrypt = Bcrypt(app)
@@ -34,7 +44,7 @@ class Users(db.Model):
     password = db.Column(db.String(255), nullable=False)
     oath_lv = db.Column(db.Integer, nullable=False, default=0)
     created = db.Column(db.TIMESTAMP, nullable=False, server_default=db.func.current_timestamp())
- 
+
 @app.route("/",methods=['GET','POST'])
 def index():
     return render_template("index.html")
@@ -60,46 +70,185 @@ def exe_one_turn():
 
 @app.route("/api/init",methods=["GET","POST"])
 def audition_init():
-        audition_name = '歌姫楽宴'
-        rival_list,judge_dict = Init.init_audition(audition_name)
-        support_keys = ['"櫻木真乃駅線上の日常4凸"','"風野灯織水面を仰いで海の底4凸"','"小宮果穂反撃の狼煙をあげよ！4凸"','"園田智代子kimagure全力ビート！4凸"']
-        support_list = []
-        for key in support_keys:
-            support_list.append(Init.set_support(key))
-        trend = {'Vo':1,'Da':2,'Vi':3}
-        pweapon_list = Init.set_pweapon()
-        '''
-        # test_passive
-        aquired_passive = [
-            Passive.passive("きゅんコメ金",'履歴(まのひお)',3,100,Passive.history_requirement,[["Vi",75]],["櫻木真乃","風野灯織"]),
-            Passive.passive("水面を仰いで海の底金",'3t以降',3,100,Passive.after_turn_requirement,[["Da",60],["Vi",30]],3),
-            Passive.passive("駅線上の日常白",'3t以前',3,100,Passive.before_turn_requirement,[["Da",30],["Vi",30]],3),
-        ]
-        '''
-        aquired_passive = [
-            Passive.passive("きゅんコメ金",'キュンコメ金',3,40,Passive.history_requirement,[["Vi",75]],["櫻木真乃","風野灯織"]),
-            Passive.passive("水面を仰いで海の底金",'海金',3,10,Passive.after_turn_requirement,[["Da",60],["Vi",30]],3),
-            Passive.passive("水面を仰いで海の底白1",'海白1',3,10,Passive.no_requirement,[["Da",40],["Vi",20]]),
-            Passive.passive("駅線上の日常金",'駅金',3,10,Passive.after_turn_requirement,[["Da",65],["Vi",65]],3),
-            Passive.passive("駅線上の日常白",'駅白',3,10,Passive.before_turn_requirement,[["Da",30],["Vi",30]],6),
-        ]
+    print('initing!!!!!!!!!!!!!')
+    audition_name = '歌姫楽宴'
+    rival_list,judge_dict = Init.init_audition(audition_name)
+    support_keys = ['"櫻木真乃駅線上の日常4凸"','"風野灯織水面を仰いで海の底4凸"','"小宮果穂反撃の狼煙をあげよ！4凸"','"園田智代子kimagure全力ビート！4凸"']
+    support_list = []
+    for key in support_keys:
+        support_list.append(Init.set_support(key))
+    trend = {'Vo':1,'Da':2,'Vi':3}
+    pweapon_list = Init.set_pweapon()
+    
+    # test_passive
+    aquired_passive = [
+        Passive.passive("きゅんコメ","金1",'きゅんコメ金1',3,40,Passive.history_requirement,[["Vi",75]],["櫻木真乃","風野灯織"]),
+        Passive.passive("水面を仰いで海の底",'金1','海金',3,10,Passive.after_turn_requirement,[["Da",60],["Vi",30]],[3]),
+        Passive.passive("駅線上の日常",'白1','駅白',3,10,Passive.before_turn_requirement,[["Da",30],["Vi",30]],[3]),
+    ]
+    passive_list =[
+        {'name':p._name,'rest':p._times,'isActive':False,
+            'text':p.get_text(),'short_name':p._short_name} for p in aquired_passive
+    ]
+    
+    settings = Settings.settings(
+        support_list=support_list,pweapon_list=pweapon_list,audition_name=audition_name,
+        week=29,trend=trend,rival_list=rival_list,idol='八宮めぐる',produce_card='きゅんコメ',memory=Memory.memory(idol_name='八宮めぐる'),
+        aquired_passive=aquired_passive)
+    settings.set_rival_mem_turn()
+    situation=Situation.situation(judge_dict=judge_dict,status={'Vo':300,'Da':500,'Vi':415,'Me':317,'memory_gage':0.1,'star':0},passive_list=passive_list)
+
+    #初ターンのパッシブを鳴かせる
+    situation.passive_process(settings)
+    data ={'settings':settings.get_dict(),'situation':situation.get_dict()}
+    return jsonify(data)
+
+@app.route("/api/reload_audition",methods=["GET","POST"])
+def reload_audition():
+    settings_in = request.json['settings']
+    audiiton_name = settings_in['audition_name']
+    situation_in = request.json['situation']
+    passive_list = util.changePassive(settings_in['aquired_passive'])
+    rival_list,judge_dict = Init.init_audition(audiiton_name)
+    settings_in['rival_list'] = [r.info for r in rival_list]
+    situation_in['judge_dict'] = {k:v.info for (k,v) in judge_dict.items()}
+    situation_in['passive_list'] = passive_list
+    
+    settings = Settings.settings()
+    settings.set_from_json(settings_in)
+    situation = Situation.situation()
+    situation.set_from_json(situation_in)
+    #対面の判定と狙い先設定
+    settings.set_rival_mem_turn()
+    settings.set_rival_critical(2)
+    settings.set_rival_aim(settings.trend,1,{'Vo':True,'Da':True,'Vi':True})
+
+    return jsonify({'settings':settings.get_dict(),'situation':situation.get_dict()})
+
+@app.route("/api/session",methods=["GET","POST"])
+def get_session():
+    return jsonify(session)
+
+@app.route('/api/pushSupport',methods=["GET","POST"])
+def pushSupport():
+    support = Support.support(dict(request.json))
+    message=support.push2DB(session)
+    return jsonify({"message": message})
+
+@app.route('/api/pushPcard',methods=["GET","POST"])
+def pushPcard():
+    input = dict(request.json)
+    # print(dict(request.json))
+    import Entity
+    entity = Entity.ProduceCard()
+    entity.idol = input['idol']
+    entity.card_name = input['cardname']
+    message =  DH.push2DB(entity,session)
+    return jsonify({"message": message})
+
+@app.route('/api/pushDeck',methods=["GET","POST"])
+def pushDeck():
+    print(dict(request.json))
+    message = DH.pushDeck(dict(request.json),session)
+    return jsonify({"message": message})
+
+@app.route('/api/pushPweapon',methods=["GET","POST"])
+def pushpweapon():
+    pweapon = P_weapon.pweapon(dict(request.json))
+    message=pweapon.push2DB(session)
+    return jsonify({"message": message})
+
+@app.route('/api/pushPassive',methods=["GET","POST"])
+def pushpassive():
+    input = dict(request.json)
+    print(input)
+    passive = Passive.passive()
+    passive.set_from_json(input)
+    message = passive.push2DB(session)
+    print(message)
+    return jsonify({"message": message})
+
+@app.route("/api/fetchPweaponPaassive",methods=["GET","POST"])
+def get_passive():
+    ret = DH.fetchPweaponPassive(request.json)
+    return jsonify(ret)
+
+@app.route('/api/all_support')
+def all_support():
+    import Entity
+    all_supports = []
+    support_entities = DH.session.query(Entity.Support).filter_by(created_by='admin').all().copy()
+    if len(session)>0:
+        username = session['username']
+        if username != 'admin':
+            support_entities += DH.session.query(Entity.Support).filter_by(created_by=username).all().copy()
         
-        settings = Settings.settings(
-            support_list=support_list,pweapon_list=pweapon_list,audition_name=audition_name[1:-1],
-            week=29,trend=trend,rival_list=rival_list,idol='八宮めぐる',memory=Memory.memory(idol_name='八宮めぐる'),
-            aquired_passive=aquired_passive)
-        settings.set_rival_mem_turn()
-        situation=Situation.situation(judge_dict=judge_dict,status={'Vo':300,'Da':500,'Vi':415,'Me':317,'memory_gage':0.1,'star':0},passive_list=aquired_passive)
-        #初ターンのパッシブを鳴かせる
-        situation.passive_process(settings)
-        data ={'settings':settings.get_dict(),'situation':situation.get_dict()}
-        return jsonify(data)
-        
-@app.route('/audition/back')
-def back_one_turn():
-    if len(session['history'])>0:
-        session['situation'] = session['history'].pop()
-    return redirect('/audition')
+    for support in support_entities:
+        sup_dict = {
+        'card_type':'S','idol_name':support.idol,'card_name':support.name,
+        'totu':str(support.totu)+'凸','status':{'Vo':support.Vo,'Da':support.Da,'Vi':support.Vi},
+        'appeal':{'Vo':support.Vo_rate,'Da':support.Da_rate,'Vi':support.Vi_rate,'Ex':support.Ex_rate},
+        'ATKtype':'single','buff':[],'key':support.idol+support.name+str(support.totu)+'凸'
+        }
+        if support.buff_relations:
+            for buff in support.buff_relations:
+                sup_dict['buff'].append( {
+                    'color':buff.color,'buff':buff.rate,'turn':buff.turn,
+                    'val':None,'name':support.name + '(S)'
+                })
+        all_supports.append(sup_dict)
+    return jsonify(all_supports)
+
+@app.route("/api/all_deck")
+def get_decks():
+    import Entity
+    deck_list = []
+    deck_list += DH.session.query(Entity.Deck).filter_by(created_by='admin').all().copy()
+    if len(session)>0:
+        username = session['username']
+        if username != 'admin':
+            deck_list += DH.session.query(Entity.Deck).filter_by(created_by=username).all().copy()
+    ret_list = [{
+        'deck_id': deck.id,
+        'name': deck.name,
+        'produce_idol': deck.produce_card.idol,
+        'produce_card': deck.produce_card.card_name,
+        'support1': {'idol': deck.supports[0].idol, 'name': deck.supports[0].name, 'totu': deck.supports[0].totu} if len(deck.supports) > 0 else {'idol': '櫻木真乃', 'name': '駅線上の日常', 'totu': 4},
+        'support2': {'idol': deck.supports[1].idol, 'name': deck.supports[1].name, 'totu': deck.supports[1].totu} if len(deck.supports) > 1 else {'idol': '櫻木真乃', 'name': '駅線上の日常', 'totu': 4},
+        'support3': {'idol': deck.supports[2].idol, 'name': deck.supports[2].name, 'totu': deck.supports[2].totu} if len(deck.supports) > 2 else {'idol': '櫻木真乃', 'name': '駅線上の日常', 'totu': 4},
+        'support4': {'idol': deck.supports[3].idol, 'name': deck.supports[3].name, 'totu': deck.supports[3].totu} if len(deck.supports) > 3 else {'idol': '櫻木真乃', 'name': '駅線上の日常', 'totu': 4}
+    } for deck in deck_list]
+    
+    DH.session.close()
+    return jsonify(ret_list)
+
+@app.route("/api/setDeck/<int:id>")
+def set_deck(id):
+    deck_dict,passive_list = DH.setDeck(id)
+    return jsonify({'settings':deck_dict,'passive_list':passive_list})
+
+@app.route("/api/deleteDeck/<int:id>")
+def delete_deck(id):
+    from Entity import Deck,deck_passive,deck_pweapon,deck_support
+    delete_deck = DH.session.query(Deck).filter_by(id=id).first()
+    
+    DH.session.query(deck_pweapon).filter(deck_pweapon.c.deck_id == id).delete()
+    DH.session.query(deck_support).filter(deck_support.c.deck_id == id).delete()
+    DH.session.query(deck_passive).filter(deck_passive.c.deck_id == id).delete()
+    DH.session.delete(delete_deck)
+    DH.session.commit()
+    DH.session.close()
+    return jsonify({'massege':'削除しました'})
+
+#settingsの獲得パッシブ情報からシミュレーションで使うpassive_listを生成
+@app.route('/api/changePassive',methods=['GET','POSt'])
+def changePassive():
+    passive_list=util.changePassive(list(request.json))
+    return jsonify(passive_list)
+
+@app.route('/edit',methods=['GET','POSt'])
+def edit():
+    return render_template('/deckEdit.html')
 
 #ログイン関係
 @app.route('/register', methods=['GET', 'POST'])
@@ -143,10 +292,15 @@ def login():
 def logout():
     session.clear()
     return redirect(url_for('audition'))
-    
 
+@app.route('/test')
+def testpage():
+    return render_template('test.html')
+    
 
 if __name__ == '__main__':
     app.run(debug=True)
+    # os.environ['FLASK_DEBUG'] = '1'
+    session['logged_in'] = False
 
 

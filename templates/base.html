@@ -18,10 +18,9 @@
 
     <header>
         <div class="header-title">SC編成チェッカー</div>
-
         <div class="header-buttons">
             <div id="userinfo">
-                <p>ログイン中</p><p>{{session['username']}}P</p>
+                <p>ログイン:{{session['logged_in']}}</p><p>{{session['username']}}</p>
             </div>
             <button class="btn" onclick="navigate('/login')">ログイン</button>
             <button class="btn" onclick="navigate('/register')">新規登録</button>
@@ -38,7 +37,7 @@
         <!-- <button class="toggle-btn" id="toggle-left-btn">☰</button> -->
         <nav>
             <ul>
-                <li><a href="#simulation">シミュレーション</a></li>
+                <li><a href="/audition">シミュレーション</a></li>
                 <li><a href="#inquiry">お問い合わせ</a></li>
                 <li><a href="#release-notes">リリースノート</a></li>
                 <li>その他リンク

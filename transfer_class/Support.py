@@ -1,4 +1,5 @@
 from transfer_class import Settings,Situation
+
 class support() :
     info:dict
     '''
@@ -46,10 +47,26 @@ class support() :
         put_buff = self.info['buff']
         return ATK_dict,put_buff
     
-    def push2DB(self):
-        import Entity
+    def push2DB(self,FlaskSession):
+        from Entity import Support,PWeapon,Buff,Passive
         import DataHandler as DH
-        entity = Entity.Support()
+        action = ""
+        existing_record = DH.session.query(Support).filter_by(name=self.info['card_name']).first()
+        if len(FlaskSession) == 0:
+            return "ログインしてください"
+        if not existing_record:
+            action ='create'
+        else:
+            if FlaskSession.get("oath_lv", 0) > 4:
+                action = 'update'
+            else:
+                return "既に登録されています。内容が間違っている場合は管理人までお知らせください。"
+        
+        if action == 'create':
+            entity = Support()
+        elif action == 'update':
+            entity = existing_record
+            
         entity.name = self.info['card_name']
         entity.idol = self.info['idol_name']
         entity.totu = int(self.info['totu'][0])
@@ -60,18 +77,17 @@ class support() :
         entity.Da_rate = self.info['appeal']['Da']
         entity.Vi_rate = self.info['appeal']['Vi']
         for buff in self.info['buff']:
-            print(buff)
-            buffEntity = Entity.Buff(
+            buffEntity = Buff(
                 color=buff['color'],
                 rate=buff['buff'],
                 turn=buff['turn'],
                 val=str(buff['val']),
             )
             entity.buff_relations.append(buffEntity)
-        DH.push2DB(entity)
-            
+        entity.pweapons = DH.session.query(PWeapon).filter(PWeapon.name.like(f"{entity.name}%")).all()
+        entity.passive_relations = DH.session.query(Passive).filter_by(cardname=entity.name).all()
+        if action == 'create':
+            DH.session.add(entity)
+        DH.session.commit()  # トランザクションをコミット
 
-        
-                    
-
-            
+        return "登録完了"

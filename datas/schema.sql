@@ -38,19 +38,21 @@ CREATE TABLE pweapon(
     Vo FLOAT DEFAULT 0.0,
     Da FLOAT DEFAULT 0.0,
     Vi FLOAT DEFAULT 0.0,
-    link_type VARCHAR(6) NOT NULL,
+    Ex FLOAT DEFAULT 0.0,
+    link_type VARCHAR(10) NOT NULL,
     link_Vo FLOAT ,
     link_Da FLOAT ,
     link_Vi FLOAT ,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     created_by VARCHAR(10) DEFAULT "admin",
     CHECK (ATK_type IN ('single', 'whole')),
-    CHECK (link_type IN ('ATK', 'buff'))
+    CHECK (link_type IN ('ATK', 'buff','no_link','plus'))
 );
 
 CREATE  TABLE passive(
     id INT AUTO_INCREMENT PRIMARY KEY,
-    name VARCHAR(20) NOT NULL UNIQUE,
+    cardname VARCHAR(20) NOT NULL,
+    passive_type VARCHAR(10) NOT NULL,
     short_name VARCHAR(10) NOT NULL,
     times INT NOT NULL,
     rate INT NOT NULL,

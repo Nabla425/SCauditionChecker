@@ -89,7 +89,8 @@ def set_pweapon():
             {"color":'Da',"buff":30,"turn":3,"name":"花風smiley+","fanc":None},
             {"color":'Vi',"buff":30,"turn":3,"name":"花風smiley+","fanc":None}
         ],
-        'link':['ATK',{'Vo':1.0,'Da':1.0,'Vi':1.0}],
+        'link_type':'ATK',
+        'link_contents':{'Vo':1.0,'Da':1.0,'Vi':1.0},
         'isLink':False
     }
     p = P_weapon.pweapon(info)
@@ -105,7 +106,8 @@ def set_pweapon():
             {"color":'Da',"buff":10,"turn":3,"name":"花風smiley+","fanc":None},
             {"color":'Vi',"buff":10,"turn":3,"name":"花風smiley+","fanc":None}
         ],
-        'link':['ATK',{'Vo':1.0,'Da':1.0,'Vi':1.0}],
+        'link_type':'ATK',
+        'link_contents':{'Vo':1.0,'Da':1.0,'Vi':1.0},
         'isLink':False
     }
     p = P_weapon.pweapon(info)
@@ -120,7 +122,8 @@ def set_pweapon():
             {"color":'Da',"buff":30,"turn":3,"name":"水面仰いで海の底","fanc":None},
             {"color":'Vi',"buff":30,"turn":3,"name":"水面仰いで海の底","fanc":None},
         ],
-        'link':[None],
+        'link_type':"no_link",
+        'link_contents':"no_link",
         'isLink':False
     }
     p = P_weapon.pweapon(info)
@@ -135,7 +138,8 @@ def set_pweapon():
             {"color":'Da',"buff":20,"turn":3,"name":"駅線上の日常","fanc":None},
             {"color":'Vi',"buff":20,"turn":3,"name":"駅線上の日常","fanc":None},
         ],
-        'link':[None],
+        'link_type':"no_link",
+        'link_contents':"no_link",
         'isLink':False
     }
     p = P_weapon.pweapon(info)

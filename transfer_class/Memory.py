@@ -4,7 +4,6 @@ class memory():
     '''
     lv:int
     '''
- 
     def __init__(self,lv=1,idol_name='櫻木真乃',link=[]):
         self.info = {
             'lv':lv,'ATKtype':'whole','card_type':'M','idol_name':idol_name,'isLink':False,

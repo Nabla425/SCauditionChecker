@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <link rel="stylesheet" href="/static/editPage.css">
+    <script src="https://cdn.jsdelivr.net/npm/vue@2"></script>
+</head>
+<body>
+{% extends "base.html" %}
+{% block content %}
+<div id="app">
+    <div id="main_box">
+        <!-- サポートアイドルの編集 -->
+        <div id="support_box" class='item'>
+            <h2>プロデュースアイドル</h2>
+            <div id="produce_box">
+                <img id='produce_img' :src="`/static/img/${settings.produce_idol}/${settings.produce_card}.png`" 
+                :alt="settings.produce_card+'\nNoImage'">
+                <div>
+                    <span>アイドル名：</span>
+                    <select v-model="settings.produce_idol">
+                        <option v-for="idol in all_idol" :key="idol" :value="idol">
+                            [[ idol ]]
+                        </option>
+                    <<input type='text' v-model="settings.produce_card" placeholder="花風smiley">
+                    <input class="DBbtn" type="button" value="DBに追加" @click="submit_Pcard">
+
+                </div>
+            </div>
+
+            <h2>サポートアイドル</h2>
+            <div id="support_icon_box">
+                <div class="support_idol" v-for='(support,index) in settings.support_list' :key="support.card_name">
+                    <input type="radio" :id="support.card_name" :value="index" v-model="Sid">
+                    <label :for="support.card_name">
+                        <img :src="`/static/img/${support.idol_name}/${support.card_name}.png`" 
+                        :alt="support.card_name+'\nNoImage'">
+                    </label>
+                </div>
+            </div>
+            <input type="radio" name="isSearchSupport" id="isSearchSupportTrue" :value="true" v-model="isSearchSupport">
+            <label for="isSearchSupportTrue">DBから検索する</label>
+            <input type="radio" name="isSearchSupport" id="isSearchSupportFalse" :value="false" v-model="isSearchSupport">
+            <label for="isSearchSupportFalse">自分で作成する</label>
+
+            <div id="support_info" v-if="isSearchSupport">
+                <p>アイドル名:
+                <select v-model="Serching_support.idol" @change="updateSupport">
+                    <option v-for="support in all_support" :key="support.key" :value="support.idol_name">[[ support.idol_name ]]</option>
+                </select></p>
+                <p>カード名:<select v-model="Serching_support.name" @change="updateSupport">
+                    <option v-for="support in filteredByIdol" :key="support.key" :value="support.card_name">[[ support.card_name ]]</option>
+                </select>
+                凸：<select v-model="Serching_support.totu" @change="updateSupport">
+                    <option v-for="support in filteredByCard" :key="support.key" :value="support.totu">[[ support.totu ]]</option>
+                </select></p>
+                
+                <div id="support-status-box">
+                    <h3>ステータス</h3>
+                    <p>Vo:[[ settings.support_list[Sid].status.Vo ]] 
+                        Da:[[ settings.support_list[Sid].status.Da ]]
+                        Vi:[[ settings.support_list[Sid].status.Vi ]]</p>
+                    <h3>アピール</h3>
+                    <p><span v-if="settings.support_list[Sid].appeal.Vo>0">Vo[[settings.support_list[Sid].appeal.Vo]]倍</span>
+                        <span v-if="settings.support_list[Sid].appeal.Da>0">Da[[settings.support_list[Sid].appeal.Da]]倍</span>
+                        <span v-if="settings.support_list[Sid].appeal.Vi>0">Vi[[settings.support_list[Sid].appeal.Vi]]倍</span>
+                        <span v-if="settings.support_list[Sid].appeal.Ex>0">Ex[[settings.support_list[Sid].appeal.Ex]]倍</span>
+                        アピール</p>
+                    <p v-for="buff in settings.support_list[Sid].buff">
+                        [[buff.color]] [[buff.buff]]%UP [ [[buff.turn]]ターン ]
+                    </p>
+                </div>
+            </div>
+            <div id="support_info" v-else>
+                <p>アイドル：<select v-model="settings.support_list[Sid].idol_name">
+                    <option v-for="idol in all_idol" :key="idol" :value="idol">
+                        [[ idol ]]
+                    </option>
+                </select></p>
+                <p>カード名：<input type='text' v-model="settings.support_list[Sid].card_name"></p>
+                <p>凸：<select v-model="settings.support_list[Sid].totu">
+                    <option>0凸</option><option>1凸</option><option>2凸</option><option>3凸</option><option>4凸</option>
+                </select></p>
+                <br>
+                <h3>ステータス</h3>
+                Vo：<input type="number" v-model="settings.support_list[Sid].status.Vo" min="0">
+                Da：<input type="number" v-model="settings.support_list[Sid].status.Da" min="0">
+                Vi：<input type="number" v-model="settings.support_list[Sid].status.Vi" min="0">
+                <br>
+                <h3>アピール倍率</h3>
+                Vo：<input type="number" v-model="settings.support_list[Sid].appeal.Vo" min="0" step="0.5">
+                Da：<input type="number" v-model="settings.support_list[Sid].appeal.Da" min="0" step="0.5">
+                Vi：<input type="number" v-model="settings.support_list[Sid].appeal.Vi" min="0" step="0.5">
+                Ex：<input type="number" v-model="settings.support_list[Sid].appeal.Ex" min="0" step="0.5">
+                <h3>付与されるバフ</h3>
+                <div id="support_buff_box">
+                    <div id="support_buff" v-for="buff in settings.support_list[Sid].buff" :key="buff.name">
+                        [[ buff.color ]] [[ buff.buff ]]%アップ / [[ buff.turn ]]ターン
+                        <button @click="remove_buff(buff,settings.support_list[Sid].buff)">削除</button>
+                    </div>
+                    <div id="support_buff_add">
+                        <select v-model="buff_form.color">
+                            <option selected disabled>--属性--</option>
+                            <option value="Vo">Vo</option>
+                            <option value="Da">Da</option>
+                            <option value="Vi">Vi</option>
+                            <option value="At">注目度</option>
+                            <option value="Av">回避率</option>
+                            <option value="Pa">パッシブ発動率</option>
+                        </select>
+                        <input type="number" v-model="buff_form.buff" min="0" step="0.5">%アップ /
+                        <input type="number" v-model="buff_form.turn" min="0">ターン
+                        <input type='text' v-model="buff_form.name" hidden>
+                        <input type="button" @click="add_buff(settings.support_list[Sid].buff)" value="追加">
+                    </div>
+                </div>
+            </div>
+            <div class="button-container">
+                <input class="DBbtn" type="button" value="DBに追加" @click="submit_support">
+            </div>
+        </div>
+
+        <!-- 取得札の編集 -->
+        <div id="pweapon_box" class='item'>
+            <h2>取得札<input class="passive_reload_btn" type="button" value="🗘" @click="fetch_pweapon_passive()" title="取得札を読み込む"></h2>
+            <div class="pweapon" v-for='(pweapon, index) in settings.pweapon_list' :key="pweapon.card_name">
+                <input type="radio" :id="pweapon.card_name +1" name="weapon" :value="index" v-model="Pid">
+                <label :for="pweapon.card_name+1">
+                    <p>[[ pweapon.card_name ]]
+                    </p>
+                    <p class='card_explain'>
+                        <span v-if='pweapon.ATKtype == "whole"'>全観客に</span>
+                        <span v-for='(rate,col) in pweapon.weapon_rate'>
+                            <span v-if='[[rate]]>0'>[[col]][[rate]]倍</span>
+                        </span>
+                        <span>アピール</span>
+                    </p>
+                </label>
+            </div>
+
+            <input type="radio" name="isSearchPweapon" id="isSearchPweaponTrue" :value="true" v-model="isSearchPweapon">
+            <label for="isSearchPweaponTrue">DBから検索する</label>
+            <input type="radio" name="isSearchPweapon" id="isSearchPweaponFalse" :value="false" v-model="isSearchPweapon">
+            <label for="isSearchPweaponFalse">自分で作成する</label>
+            <div id="pweapon_editbox" v-if="isSearchPweapon">
+                <select v-model="settings.pweapon_list[Pid]">
+                    <option v-for="pweapon in all_pweapon" :key="pweapon.card_name" :value="pweapon">[[ pweapon.card_name ]]</option>
+                </select>
+
+                <p>[[settings.pweapon_list[Pid].card_name]]</p>
+                <p><span v-if="settings.pweapon_list[Pid].ATKtype==='whole'">全観客に</span>
+                <span v-if="settings.pweapon_list[Pid].weapon_rate.Vo>0">Vo[[settings.pweapon_list[Pid].weapon_rate.Vo]]倍</span>
+                <span v-if="settings.pweapon_list[Pid].weapon_rate.Da>0">Da[[settings.pweapon_list[Pid].weapon_rate.Da]]倍</span>
+                <span v-if="settings.pweapon_list[Pid].weapon_rate.Vi>0">Vi[[settings.pweapon_list[Pid].weapon_rate.Vi]]倍</span>
+                <span v-if="settings.pweapon_list[Pid].weapon_rate.Ex>0">Ex[[settings.pweapon_list[Pid].weapon_rate.VEx]]倍</span>
+                アピール</p>
+                <div id="serching_pweapon_buff">
+                    <h3>バフ</h3>
+                    <ul>
+                        <li v-for="buff in settings.pweapon_list[Pid].buff">[[buff.color]][[buff.buff]]%UP[ [[buff.turn]]ターン ]</li>
+                    </ul>
+                </div>
+                <div id='serching_pweapon_link_box' v-if="settings.pweapon_list[Pid].link_type==='ATK'">
+                    <h3>LINK</h3>
+                    <p><span v-if="settings.pweapon_list[Pid].link_contents.Vo>0">Vo[[settings.pweapon_list[Pid].link_contents.Vo]]倍</span>
+                        <span v-if="settings.pweapon_list[Pid].link_contents.Da>0">Da[[settings.pweapon_list[Pid].link_contents.Da]]倍</span>
+                        <span v-if="settings.pweapon_list[Pid].link_contents.Vi>0">Vi[[settings.pweapon_list[Pid].link_contents.Vi]]倍</span>
+                    追撃</p>
+                </div>
+                <div id='serching_pweapon_link_box' v-if="settings.pweapon_list[Pid].link_type==='buff'">
+                    <h3>LINK</h3>
+                    <ul>
+                        <li v-for="buff in settings.pweapon_list[Pid].link_contents">[[buff.color]][[buff.buff]]%UP[ [[buff.turn]]ターン ]</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div id="pweapon_editbox" v-else>
+                <p>カード名：<input type='text' v-model="settings.pweapon_list[Pid].card_name"></p>
+                <p><input type="radio" id="single" name="ATKtype" value="single" v-model="settings.pweapon_list[Pid].ATKtype" checked><label for="single">スピア札</label>
+                    <input type="radio" id="whole" name="ATKtype" value="whole" v-model="settings.pweapon_list[Pid].ATKtype"><label for="whole">全体札</label></p>
+                <p>倍率：Vo<input type='number' v-model="settings.pweapon_list[Pid].weapon_rate.Vo" min="0" step="0.5">
+                    Da<input type='number' v-model="settings.pweapon_list[Pid].weapon_rate.Da" min="0" step="0.5">
+                    Vi<input type='number' v-model="settings.pweapon_list[Pid].weapon_rate.Vi" min="0" step="0.5">
+                    Ex<input type='number' v-model="settings.pweapon_list[Pid].weapon_rate.Ex" min="0" step="0.5">
+                </p>
+                付与されるバフ
+                <div id="pweapon_buff_box">
+                    <div id="pweapon_buff" v-for=" buff in settings.pweapon_list[Pid].buff" :key="buff.name">
+                        [[ buff.color ]] [[ buff.buff ]]%アップ / [[ buff.turn ]]ターン
+                        <button @click="remove_buff(buff,settings.pweapon_list[Pid].buff)">削除</button>
+                    </div>
+                    <div id="pweapon_buff_add">
+                        <select v-model="buff_form.color">
+                            <option selected disabled>--属性--</option>
+                            <option value="Vo">Vo</option>
+                            <option value="Da">Da</option>
+                            <option value="Vi">Vi</option>
+                            <option value="At">注目度</option>
+                            <option value="Av">回避率</option>
+                            <option value="Pa">パッシブ発動率</option>
+                        </select>
+                        <input type="number" v-model="buff_form.buff" min="0" step="0.5">%アップ /
+                        <input type="number" v-model="buff_form.turn" min="0">ターン
+                        <input type='text' v-model="buff_form.name" hidden>
+                        <input type="button" @click="add_buff(settings.pweapon_list[Pid].buff)" value="追加">
+                    </div>
+                </div>
+                <!-- LINK,Plusアピール -->
+                <div id="link_box">
+                    LINK
+                    <p><input type="radio" id="no_link" name="lik_type" value="no_link" v-model="settings.pweapon_list[Pid].link_type" @change="prepare_link_form(settings.pweapon_list[Pid])"><label for="no_link">リンクなし</label>
+                        <input type="radio" id="ATK" name="link_type" value="ATK" v-model="settings.pweapon_list[Pid].link_type" @change="prepare_link_form(settings.pweapon_list[Pid])"><label for="ATK">追撃</label>
+                        <input type="radio" id="buff" name="link_type" value="buff" v-model="settings.pweapon_list[Pid].link_type" @change="prepare_link_form(settings.pweapon_list[Pid])"><label for="buff">バフ</label></p>
+                    <div v-if="settings.pweapon_list[Pid].link_type == 'ATK'">
+                        Vo<input type='number' v-model="settings.pweapon_list[Pid].link_contents.Vo" min="0" step="0.5">
+                        Da<input type='number' v-model="settings.pweapon_list[Pid].link_contents.Da" min="0" step="0.5">
+                        Vi<input type='number' v-model="settings.pweapon_list[Pid].link_contents.Vi" min="0" step="0.5">
+                    </div>
+                    <div v-if="settings.pweapon_list[Pid].link_type == 'buff'">
+                        <div id="link_buff" v-for=" buff in settings.pweapon_list[Pid].link_contents" :key="buff.name">
+                            [[ buff.color ]] [[ buff.buff ]]%アップ / [[ buff.turn ]]ターン
+                            <button @click="remove_buff(buff,settings.pweapon_list[Pid].link_contents)">削除</button>
+                        </div>
+                    
+                        <div id="link_buff_add">
+                            <select v-model="buff_form.color">
+                                <option selected disabled>--属性--</option>
+                                <option value="Vo">Vo</option>
+                                <option value="Da">Da</option>
+                                <option value="Vi">Vi</option>
+                                <option value="At">注目度</option>
+                                <option value="Av">回避率</option>
+                                <option value="Pa">パッシブ発動率</option>
+                            </select>
+                            <input type="number" v-model="buff_form.buff" min="0" step="0.5">%アップ /
+                            <input type="number" v-model="buff_form.turn" min="0">ターン
+                            <input type='text' v-model="buff_form.name" hidden>
+                            <input type="button" @click="add_buff(settings.pweapon_list[Pid].link_contents)" value="追加">
+                        </div>
+                    </div>
+                </div>
+                <div class="button-container">
+                    <input class="DBbtn" type="button" value="DBに追加" @click="submit_pweapon">
+                </div>
+                
+            </div>
+        </div>
+
+        <!-- パッシブ -->
+        <div id="passive_box" class="item">
+            <h2>パッシブ<input class="passive_reload_btn" type="button" value="🗘" @click="fetch_pweapon_passive()" title="パッシブを読み込む"></h2>
+            <div class="passive_choice" v-for="passive in all_passive" :key="passive.name">
+                <label class="tooltip">
+                    <input type="checkbox" :value="passive" v-model="settings.aquired_passive">
+                    <p>[[passive.card_name]][[passive.type]]</p>
+                    <span class="tooltiptext">[[passive.text]]</span>
+                    </label>
+            </div>
+            <p>ここにないパッシブを追加する<input class="edit_passive_btn" type="button" value="▽" @click="toggle_edit_passive()"></p>
+            <div id="add_passive" v-if="isEditPassive">
+            <p>カード名：</p>
+            <select v-model="passive_template.card_name" required>
+                <option :value="settings.produce_card">[[ settings.produce_card ]]</option>
+                <option v-for="support in settings.support_list" :key="support.card_name" :value="support.card_name">
+                    [[ support.card_name ]]
+                </option>
+            </select>
+
+                <select v-model="passive_template.type" required>
+                    <option selected disabled>--種別--</option>
+                    <option value="白1">白1</option>
+                    <option value="白2">白2</option>
+                    <option value="金1">金1</option>
+                    <option value="金2">金2</option>
+                    <option value="虹">虹</option>
+                </select></p>
+            <p>略称：<input type="text" v-model="passive_template.icon" placeholder="海金"></p>
+            条件：<select v-model="passive_template.request">
+                <option v-for="request in request_list" :value="request">[[request]]</option>
+            </select>
+            <input type="text" v-model="passive_template.args" :placeholder="args_explain[passive_template.request]" v-if="args_explain[passive_template.request]!=''" id="passive_args">
+            <div id="passive_buff_box">
+                パッシブ内容
+                <div class="passive_buff" v-for="rate in passive_template.buff">
+                    [[ rate[0] ]][[ rate[1] ]]%UP
+                    <input type="button" value="削除" @click="remove_passive_buff(rate)">
+                </div>
+                <p>
+                <select v-model="passive_rate[0]">
+                    <option selected disabled>--属性--</option>
+                    <option value="Vo">Vo</option>
+                    <option value="Da">Da</option>
+                    <option value="Vi">Vi</option>
+                    <option value="At">注目度</option>
+                    <option value="Av">回避率</option>
+                    <option value="Pa">パッシブ発動率</option>
+                </select>
+                <input type="number" v-model="passive_rate[1]" min="0" step="5">％UP
+                </p>
+                <input type="button" value="追加" @click="add_passive_buff">
+                <p>確率：<input type="number" v-model="passive_template.p" min="0" step="10">％</p>
+                <p>回数：<input type="number" v-model="passive_template.times" min="0">回</p>
+                
+            </div>
+            </div>
+            <div class="button-container">
+                <input class="DBbtn" type="button" value="DBに追加" @click="submit_passive">
+            </div>
+        </div>
+        
+    </div>
+    <!-- <pre>[[all_pweapon]]</pre> -->
+    <!-- <pre>[[ settings.aquired_passive ]]</pre> -->
+    <div class="button-container">
+        <p>デッキ名<input type="text" v-model="settings.deck_name" placeholder="自札なしDaVi"></p>
+        <input class="decksubmit" type="button" value="編成を登録" @click="submit_deck">
+        <input class="decksubmit" type="button" value="戻る" @click="return_simulation">
+    </div>
+    <div class="sidebar right" id="right-sidebar"></div>
+</div>
+
+<script src="static/editPage.js"></script>
+{% endblock %}
+</body>
+</html>

@@ -49,6 +49,7 @@ class play():
     
     # ターン開始処理
     def start_step(self):
+        print("start_step")
         #対面の判定と狙い先のセット
         turn = self.situation.turn
         trend = self.settings.trend
@@ -245,6 +246,7 @@ class play():
         log += ( str(self.situation.turn) + 'ターン目\n')
         log += 'PASSIVE:'
         for passive in self.situation.passive_list:
+            print(passive)
             if passive['isActive']:
                 log += passive['name']
         log += '\n'

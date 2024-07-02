@@ -1,0 +1,194 @@
+#main_box {
+    display: flex;
+    justify-content: center;
+    margin: auto;
+    width: 100%;
+}
+
+.item {
+    border: 1px solid #ddd;
+    border-radius: 10px;
+    margin:1%;
+    padding: 1%;
+    width: 30%;
+    box-shadow: 0 4px 8px #89baff;
+}
+.button-container {
+    text-align: center; /* コンテナ内の要素を水平方向に中央揃え */
+    margin: 20px 0;     /* 上下に余白を追加して見た目を調整 */
+}
+
+#produce_box{
+    display: flex;
+}
+
+#produce_img{
+    aspect-ratio: 1 / 1;
+    height: 6em;
+}
+
+#support_icon_box {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.support_idol {
+    text-align: center;
+}
+
+.support_idol img {
+    width: 65px;
+    height: 65px;
+    border: 2px solid transparent;
+    cursor: pointer;
+    display: block;
+}
+
+.support_idol input[type="radio"] {
+    display: none;
+}
+
+.support_idol input[type="radio"]:checked + label img {
+    border-color: blue;
+}
+
+#support_info {
+    margin-top: 20px;
+}
+
+#support_buff_box,
+#pweapon_buff_box {
+    margin-top: 10px;
+}
+
+.passive_choice {
+    margin-bottom: 10px;
+}
+
+#link_box {
+    margin-top: 10px;
+}
+
+.DBbtn {
+    margin-top: 10px;
+    border-radius: 10px;
+    padding: 10px 20px;
+    background-color: #4082dd;
+    color: white;
+    border: none;
+    cursor: pointer;
+}
+
+.DBbtn:hover {
+    background-color: #C5D9F5;
+}
+
+input[type="number"] {
+    width: 15%; /* 必要に応じて幅を調整 */
+}
+
+input[type="text"] {
+    width: 60%; /* 必要に応じて幅を調整 */
+}
+
+.passive_choice label {
+    display: flex;
+    align-items: center;
+}
+
+.passive_choice input[type="checkbox"] {
+    margin-right: 10px;
+}
+
+/* pweaponのラジオボタンを隠して選択されている場合は枠線の色を変える */
+.pweapon label {
+    display: block;
+    border: 2px solid transparent;
+    padding: 3%;
+    margin :1%;
+    cursor: pointer;
+    background-color: #fcfeff;
+}
+
+
+.pweapon input[type="radio"] {
+    display: none;
+}
+
+.pweapon input[type="radio"]:checked + label {
+    border-color: rgb(252, 174, 255);
+    background-color: #ffc6ff;
+}
+
+.passive_choice{
+    margin:1%;
+    padding:3%;
+    background-color: #fcfeff;
+}
+
+.tooltip {
+    position: relative;
+    display: inline-block;
+    cursor: pointer;
+}
+
+.decksubmit {
+    margin-top: 10px;
+    border-radius: 10px;
+    padding: 10px 20px;
+    background-color: #4082dd;
+    color: white;
+    border: none;
+    cursor: pointer;
+}
+
+.decksubmit:hover {
+    background-color: #C5D9F5;
+}
+
+.tooltip .tooltiptext {
+    visibility: hidden;
+    width: 16em;
+    background-color: #e1f6ff;
+    border:solid 1px #4082dd;
+    box-shadow: 0 4px 8px #89baff;
+    text-align: center;
+    border-radius: 5px;
+    padding: 5px 0;
+    position: absolute;
+    z-index: 1;
+    bottom: 0%; /* ツールチップを下から表示 */
+    left: 70%;
+    margin-left: -100px; /* ツールチップを中央に配置 */
+    opacity: 0;
+    transition: opacity 0.3s;
+    z-index: 10;
+}
+
+.tooltip:hover .tooltiptext {
+    visibility: visible;
+    opacity: 1;
+}
+
+#support-status-box,#support_buff,#passive_buff,#pweapon_buff_box,#serching_pweapon_buff{
+    background-color: #fcfdff;
+    border: solid 1px #ddd;
+    padding: 2%;
+    border-radius: 3%;
+}
+
+.passive_reload_btn,.edit_passive_btn{
+    width: 2em;
+    height: 2em;
+    background-color: #8e9fff;
+    color: white;
+    border: none;
+    margin-left: 5px;
+    border-radius: 10%;
+    cursor: pointer;
+  }
+  .passive_reload_btn:hover,.edit_passive_btn:hover{
+    background-color: #0056b3;
+  }
+

@@ -1,31 +1,34 @@
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker,joinedload
-from Entity import Support, Buff
+import Entity
+import DataHandler as DH
 
 # 適切なDB接続情報を指定してエンジンを作成します。
 engine = create_engine('mysql+pymysql://root:AdminAdmin@localhost/scdb')
 
 # セッションを作成します。
+engine.dispose()
 Session = sessionmaker(bind=engine)
 session = Session()
 
-new_support = Support(name='Support A', idol='Idol X', totu=100, Vo=50, Da=30, Vi=20)
-session.add(new_support)
-session.commit()
+list = session.query(Entity.Support).all()
+all_supports = []
+support_entities = DH.session.query(Entity.Support).filter_by(created_by='admin').all().copy()
+username = 'test'
+if username != 'admin':
+    support_entities += DH.session.query(Entity.Support).filter_by(created_by=username).all().copy()
+    
+for support in support_entities:
+    print(support.passive_relations)
+    if support.pweapons:
+        for weapon in support.pweapons:
+            print(weapon.name)
 
-# サポートに関連付けられたバフを作成します。
-new_buff = Buff(color='Red', rate=5, turn=3, val='Some value', support=new_support)
-session.add(new_buff)
-session.commit()
+Pcards = DH.session.query(Entity.ProduceCard).all()
 
-# READ (読み取り)
-# サポートと関連付けられたすべてのバフを取得し、一覧表示します。
-support_with_buffs = session.query(Support).options(joinedload(Support.buffs)).all()
-for support in support_with_buffs:
-    print(f'Support Name: {support.name}')
-    print('Buffs:')
-    for buff in support.buffs:
-        print(f'  - Color: {buff.color}, Rate: {buff.rate}, Turn: {buff.turn}, Value: {buff.val}')
-
+for Pcard in Pcards:
+    for pweapon in Pcard.pweapons:
+        print(pweapon.name)
+    
 # セッションを閉じます。
 session.close()

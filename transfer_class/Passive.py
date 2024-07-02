@@ -4,8 +4,9 @@ class passive:
     #name:パッシブ名,times:鳴く回数(最大),p:条件を満たしたときに鳴く確率,request:バフ条件(function)
     #situation:盤面条件dict{"status","support_df","buff_list","score_df","judge_dict","rival_list"}
     #buffs:鳴くバフ キュンコメ[["Vi",120],["Da",80],["Vo",80]]みたいに2次元配列を渡す
-    def __init__(self,name='',short_name='',times=0,p=0,request=None,buffs=[],*args):
+    def __init__(self,name='',type='',short_name='',times=0,p=0,request=None,buffs=[],args=None):
         self._name = name
+        self._type=type
         self._short_name=short_name
         self._times = times
         self._p = p
@@ -24,10 +25,11 @@ class passive:
     
     def get_dict(self):
         return       {
-            'name':self._name,
+            'card_name':self._name,
+            'type':self._type,
             'times':self._times,
             'p':self._p,
-            'buffs':self._buffs,
+            'buff':self._buffs,
             'request':condition_func_dict[self._request],
             'args':self._args,
             'text':self.get_text(),
@@ -35,17 +37,18 @@ class passive:
         }
         
     def set_from_json(self,in_dict):
-        self._name = in_dict['name']
+        self._name = in_dict['card_name']
+        self._type = in_dict['type']
         self._short_name=in_dict['icon']
         self._times = in_dict['times']
         self._p = in_dict['p']
         self._request = condition_name_dict[in_dict['request']]
-        self._buffs = in_dict['buffs']
+        self._buffs = in_dict['buff']
         self._args = in_dict['args']
         
         
     def get_text(self):
-        txt = self._name + '\n'
+        txt = self._name +self._type+ '\n'
         for buff in self._buffs:
             txt += buff_icon_dict[buff[0]]
             txt += str(buff[1])
@@ -56,7 +59,52 @@ class passive:
         txt += f'[最大:{self._times}回]'
         return txt
     
-     
+    def push2DB(self,FlaskSession):
+        from Entity import Support,ProduceCard,Passive,PassiveRate
+        import DataHandler as DH
+        action = ""
+        existing_record = DH.session.query(Passive).filter_by(cardname=self._name,passive_type=self._type).first()
+        if len(FlaskSession) == 0:
+            return "ログインしてください"
+        if not existing_record:
+            action ='create'
+        else:
+            if FlaskSession.get("oath_lv", 0) > 4:
+                action = 'update'
+            else:
+                return "既に登録されています。内容が間違っている場合は管理人までお知らせください。"
+        
+        if action == 'create':
+            entity = Passive()
+        elif action == 'update':
+            entity = existing_record
+            
+        entity.cardname = self._name
+        entity.passive_type = self._type
+        entity.short_name = self._short_name
+        entity.times = self._times
+        entity.rate = self._p
+        if type(self._request) == str:
+            entity.request = self._request
+        else:
+            entity.request = condition_func_dict[self._request]
+        entity.args = str(self._args)
+        entity.created_by= FlaskSession['username']
+        
+        for buff in self._buffs:
+            RateEntity = PassiveRate(
+                color=buff[0],
+                rate=buff[1],
+                created_by = FlaskSession['username']
+            )
+            entity.passiverate_relations.append(RateEntity)
+        entity.support = DH.session.query(Support).filter_by(name=entity.cardname).first()
+        entity.produce_card = DH.session.query(ProduceCard).filter_by(card_name=entity.cardname).first()
+        if action == 'create':
+            DH.session.add(entity)
+        DH.session.commit()  # トランザクションをコミット
+        return "登録完了"
+    
 def get_condition_name(func,val):
   if func == no_requirement:
         return '無条件'
@@ -98,47 +146,49 @@ def buff_requirement(situation,val):
 #TESTOK
 #ターン以降条件
 def after_turn_requirement(situation,val):
-  return situation.turn >= int(val[0])
+    return situation.turn >= int(val[0])
 
 #TESTOK
 #ターン以前条件
 def before_turn_requirement(situation,val):
-  return situation.turn <= int(val[0])
+
+    return situation.turn <= int(val[0])
 
 #確率近似条件
 def possibility_requirement(situation,val):
-  r = random.random()
-  turn_num = situation.turn
-  return r < val[0][turn_num]
+    r = random.random()
+    turn_num = situation.turn
+    return r < val[0][turn_num]
 
 #TESTOK
 #履歴条件
 def history_requirement(situation,val):
     if type(val[0]) == str:
-        val[0] = [val[0]]
+        val[0] = val[0].split(',')
     return set(val[0]) <= set(situation.skill_history)
-  
 
-  
 condition_name_dict = {
-  '無条件':no_requirement,
-  '3色バフ条件':three_color_requirement,
-  '(属性)UPが付与されている場合':buff_requirement,
-  '(N)ターン以前':before_turn_requirement,
-  '(N)ターン以後':after_turn_requirement,
-  '履歴に(アイドル)がある場合':history_requirement,
-  'それ以外':possibility_requirement
+    '無条件':no_requirement,
+    '3色バフ条件':three_color_requirement,
+    '(属性)UPが付与されている場合':buff_requirement,
+    '(N)ターン以前':before_turn_requirement,
+    '(N)ターン以後':after_turn_requirement,
+    '履歴に(アイドル)がある場合':history_requirement,
+    'それ以外':possibility_requirement
 }
 
+def get_request_fanc(txt):
+    return condition_name_dict[txt]
+
 condition_func_dict = {k:v for v,k in condition_name_dict.items()}
-  
+
 buff_icon_dict ={
-  'Vo':'Vocal',
-  'Da':'Dance',
-  'Vi':'Visual',
-  'At':'注目度',
-  'Av':'回避率',
-  'PASSIVEpr':'パッシブ発動率アップ'
+    'Vo':'Vocal',
+    'Da':'Dance',
+    'Vi':'Visual',
+    'At':'注目度',
+    'Av':'回避率',
+    'Pa':'パッシブ発動率アップ'
 }
 
 all_passive_dict = {"花風Smiley金1":passive("花風金1",3,30,no_requirement,[["Da",75]]),

@@ -25,6 +25,18 @@ def chk_link(idol,skill_history):
     chk_link_list = set(skill_history + [idol])
     return chk_link_list >= unit
 
+def changePassive(aquired_passive):
+    from transfer_class import Passive
+    passive_list=[]
+    for passive in aquired_passive:
+        p = Passive.passive()
+        p.set_from_json(passive)
+        passive_list.append(
+            {'name':p._name,'rest':p._times,'isActive':False,
+            'text':p.get_text(),'short_name':p._short_name}
+            )
+    return passive_list
+
 def test_rival_critical(rival,turn):
     result = {'p':0,'g':0,'n':0,'b':0,'m':0}
     itr = 10000

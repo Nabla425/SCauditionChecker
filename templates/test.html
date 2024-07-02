@@ -2,98 +2,129 @@
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
-    <title>円グラフ描画</title>
-    <script src="https://cdn.jsdelivr.net/npm/vue@2"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="https://cdn.jsdelivr.net/gh/emn178/chartjs-plugin-labels/src/chartjs-plugin-labels.js"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>順位付け</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.14.0/sortable.min.css">
+    <style>
+        .trend-container {
+            display: flex;
+            justify-content: center;
+            margin-top: 20px;
+        }
+        .table {
+            display: table;
+            border-collapse: collapse;
+            width: 200px;
+        }
+        .table-row {
+            display: table-row;
+        }
+        .table-cell {
+            display: table-cell;
+            padding: 10px;
+            border: 1px solid #ccc;
+        }
+        .rank-label {
+            font-weight: bold;
+            width: 50px;
+            text-align: center;
+        }
+        .sortable-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+        .sortable-item {
+            padding: 10px;
+            border: 1px solid #ccc;
+            background-color: #f9f9f9;
+            cursor: move;
+            margin-bottom: 5px;
+        }
+    </style>
+</head>
 <body>
-    <div id="app">
-        <canvas id="myPieChart"></canvas>
+    <div class="trend-container">
+        <div class="table">
+            <div class="table-row">
+                <div class="table-cell rank-label">1位</div>
+                <div class="table-cell">
+                    <ul id="sortable-list-1" class="sortable-list"></ul>
+                </div>
+            </div>
+            <div class="table-row">
+                <div class="table-cell rank-label">2位</div>
+                <div class="table-cell">
+                    <ul id="sortable-list-2" class="sortable-list"></ul>
+                </div>
+            </div>
+            <div class="table-row">
+                <div class="table-cell rank-label">3位</div>
+                <div class="table-cell">
+                    <ul id="sortable-list-3" class="sortable-list"></ul>
+                </div>
+            </div>
+        </div>
     </div>
+    <button type="button" onclick="getRankOrder()">送信</button>
 
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.14.0/Sortable.min.js"></script>
     <script>
-        new Vue({
-            el: '#app',
-            delimiters: ["[[", "]]"],
-            data: {
-                settings: {},
-                situation: {
-                    "judge_dict": {
-                        "Vo": {
-                          "color": "Vo",
-                          "HP": 120790,
-                          "Max_HP": 144000,
-                          "ATK": 40,
-                          "DEF": 1,
-                          "buff": [],
-                          "score": {
-                            "appeal": {"My": 12121,"A": 22220,"B": 23210,"C": 4440,"D": 1110,"E": 440},
-                            "3star": "",
-                            "6star": "",
-                            "LA": "",
-                            "TA": ""}
-                        }
-                    }
-                },
-                history: [], // 状況の履歴を保持するための配列
-                isFinish:false,
-            },
-            
-            mounted() {
-                this.drawChart();
-            },
-            methods: {
-                drawChart() {
-                    // データの準備
-                    const appealScores = this.situation.judge_dict.Vo.score.appeal;
-                    const labels = Object.keys(appealScores);
-                    const data = Object.values(appealScores);
+        var options = {
+            animation: 150,
+            group: 'shared',
+            ghostClass: 'sortable-ghost',
+            onEnd: function (evt) {
+                updateLists();
+            }
+        };
 
-                    var ctx = document.getElementById('myPieChart').getContext('2d');
-                    var myPieChart = new Chart(ctx, {
-                        type: 'pie',
-                        data: {
-                            labels: labels,
-                            datasets: [{
-                                data: data,
-                                backgroundColor: [
-                                    'rgba(255, 99, 132, 0.2)',
-                                    'rgba(54, 162, 235, 0.2)',
-                                    'rgba(255, 206, 86, 0.2)',
-                                    'rgba(75, 192, 192, 0.2)',
-                                    'rgba(153, 102, 255, 0.2)',
-                                    'rgba(255, 159, 64, 0.2)'
-                                ],
-                                borderColor: [
-                                    'rgba(255, 99, 132, 1)',
-                                    'rgba(54, 162, 235, 1)',
-                                    'rgba(255, 206, 86, 1)',
-                                    'rgba(75, 192, 192, 1)',
-                                    'rgba(153, 102, 255, 1)',
-                                    'rgba(255, 159, 64, 1)'
-                                ],
-                                borderWidth: 1
-                            }]
-                        },
-                        options: {
-                            responsive: true,
-                            maintainAspectRatio: false,
-                            title:{
-                                display:true,
-                                text:col
-                            },
-                            plugins: {
-                                labels: {
-                                  render: 'percentage',
-                                  fontColor: 'white',
-                                  fontSize: 20
-                                }
-                              }
-                        }
-                    });
+        var sortable1 = new Sortable(document.getElementById('sortable-list-1'), options);
+        var sortable2 = new Sortable(document.getElementById('sortable-list-2'), options);
+        var sortable3 = new Sortable(document.getElementById('sortable-list-3'), options);
+
+        var items = ['Vo', 'Da', 'Vi'];
+        items.forEach((item) => {
+            var listItem = document.createElement('li');
+            listItem.className = 'sortable-item';
+            listItem.textContent = item;
+            listItem.setAttribute('data-value', item);
+            document.getElementById('sortable-list-1').appendChild(listItem);
+        });
+
+        function updateLists() {
+            ['sortable-list-1', 'sortable-list-2', 'sortable-list-3'].forEach(listId => {
+                var list = document.getElementById(listId);
+                while (list.childElementCount > 1) {
+                    var item = list.lastElementChild;
+                    list.removeChild(item);
+                    moveToEmptyList(item);
+                }
+            });
+        }
+
+        function moveToEmptyList(item) {
+            var lists = ['sortable-list-1', 'sortable-list-2', 'sortable-list-3'];
+            for (var i = 0; i < lists.length; i++) {
+                var list = document.getElementById(lists[i]);
+                if (list.childElementCount === 0) {
+                    list.appendChild(item);
+                    break;
                 }
             }
-        });
+        }
+
+        function getRankOrder() {
+            var rankOrder = {};
+            ['sortable-list-1', 'sortable-list-2', 'sortable-list-3'].forEach((listId, index) => {
+                var list = document.getElementById(listId);
+                if (list.childElementCount > 0) {
+                    var item = list.firstElementChild.getAttribute('data-value');
+                    rankOrder[item] = index + 1;
+                }
+            });
+            alert('順位: ' + JSON.stringify(rankOrder));
+        }
     </script>
 </body>
 </html>
