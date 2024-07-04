@@ -3,128 +3,115 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>順位付け</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.14.0/sortable.min.css">
+    <title>APItest</title>
     <style>
-        .trend-container {
-            display: flex;
-            justify-content: center;
-            margin-top: 20px;
-        }
-        .table {
-            display: table;
-            border-collapse: collapse;
-            width: 200px;
-        }
-        .table-row {
-            display: table-row;
-        }
-        .table-cell {
-            display: table-cell;
-            padding: 10px;
-            border: 1px solid #ccc;
-        }
-        .rank-label {
-            font-weight: bold;
-            width: 50px;
-            text-align: center;
-        }
-        .sortable-list {
-            list-style: none;
-            padding: 0;
+        body {
+            font-family: Arial, sans-serif;
             margin: 0;
+            padding: 20px;
+            background-color: #f8f9fa;
         }
-        .sortable-item {
-            padding: 10px;
-            border: 1px solid #ccc;
-            background-color: #f9f9f9;
-            cursor: move;
-            margin-bottom: 5px;
+        h1 {
+            text-align: center;
+            color: #333;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            background-color: #fff;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        th, td {
+            padding: 12px 15px;
+            text-align: left;
+            border: 1px solid #ddd;
+        }
+        th {
+            background-color: #007BFF;
+            color: white;
+        }
+        tr:nth-child(even) {
+            background-color: #f2f2f2;
+        }
+        tr:hover {
+            background-color: #e9e9e9;
+        }
+        .table-container {
+            overflow-x: auto;
         }
     </style>
 </head>
 <body>
-    <div class="trend-container">
-        <div class="table">
-            <div class="table-row">
-                <div class="table-cell rank-label">1位</div>
-                <div class="table-cell">
-                    <ul id="sortable-list-1" class="sortable-list"></ul>
-                </div>
-            </div>
-            <div class="table-row">
-                <div class="table-cell rank-label">2位</div>
-                <div class="table-cell">
-                    <ul id="sortable-list-2" class="sortable-list"></ul>
-                </div>
-            </div>
-            <div class="table-row">
-                <div class="table-cell rank-label">3位</div>
-                <div class="table-cell">
-                    <ul id="sortable-list-3" class="sortable-list"></ul>
-                </div>
-            </div>
-        </div>
+    <div id="app">
+        <p>api連携：[[ message ]]</p>
+        <p>DB連携</p>
+        <table>
+            <thead>
+                <tr>
+                    <th>Card Type</th>
+                    <th>Idol Name</th>
+                    <th>Card Name</th>
+                    <th>Totu</th>
+                    <th>Vo</th>
+                    <th>Da</th>
+                    <th>Vi</th>
+                    <th>Appeal Vo</th>
+                    <th>Appeal Da</th>
+                    <th>Appeal Vi</th>
+                    <th>Appeal Ex</th>
+                    <th>ATK Type</th>
+                    <th>Buff</th>
+                    <th>Key</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr v-for="support in all_supports" :key="support.key">
+                    <td>[[ support.card_type ]]</td>
+                    <td>[[ support.idol_name ]]</td>
+                    <td>[[ support.card_name ]]</td>
+                    <td>[[ support.totu ]]</td>
+                    <td>[[ support.status.Vo ]]</td>
+                    <td>[[ support.status.Da ]]</td>
+                    <td>[[ support.status.Vi ]]</td>
+                    <td>[[ support.appeal.Vo ]]</td>
+                    <td>[[ support.appeal.Da ]]</td>
+                    <td>[[ support.appeal.Vi ]]</td>
+                    <td>[[ support.appeal.Ex ]]</td>
+                    <td>[[ support.ATKtype ]]</td>
+                    <td><span v-for="buff in support.buff">[[buff.color]][[buff.buff]]%UP[[buff.turn]]ターン </span></td>
+                    <td>[[ support.key ]]</td>
+                </tr>
+            </tbody>
+        </table>
     </div>
-    <button type="button" onclick="getRankOrder()">送信</button>
-
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.14.0/Sortable.min.js"></script>
+    <!-- Make sure the script tag is in the body or head -->
+    <script src="https://cdn.jsdelivr.net/npm/vue@2"></script>
     <script>
-        var options = {
-            animation: 150,
-            group: 'shared',
-            ghostClass: 'sortable-ghost',
-            onEnd: function (evt) {
-                updateLists();
+        new Vue({
+            el: '#app',
+            delimiters: ["[[", "]]"],
+            data: {
+                message: '',
+                all_supports: []
+            },
+            mounted() {
+                fetch('/api/hello')
+                    .then(response => response.json())
+                    .then(data => {
+                        this.message = data.message;
+                        console.log(data);
+                    })
+                    .catch(error => console.error('Error:', error));
+
+                fetch('/api/all_support')
+                    .then(response => response.json())
+                    .then(data => {
+                        this.all_supports = data;
+                    })
+                    .catch(error => console.error('Error:', error));
             }
-        };
-
-        var sortable1 = new Sortable(document.getElementById('sortable-list-1'), options);
-        var sortable2 = new Sortable(document.getElementById('sortable-list-2'), options);
-        var sortable3 = new Sortable(document.getElementById('sortable-list-3'), options);
-
-        var items = ['Vo', 'Da', 'Vi'];
-        items.forEach((item) => {
-            var listItem = document.createElement('li');
-            listItem.className = 'sortable-item';
-            listItem.textContent = item;
-            listItem.setAttribute('data-value', item);
-            document.getElementById('sortable-list-1').appendChild(listItem);
         });
-
-        function updateLists() {
-            ['sortable-list-1', 'sortable-list-2', 'sortable-list-3'].forEach(listId => {
-                var list = document.getElementById(listId);
-                while (list.childElementCount > 1) {
-                    var item = list.lastElementChild;
-                    list.removeChild(item);
-                    moveToEmptyList(item);
-                }
-            });
-        }
-
-        function moveToEmptyList(item) {
-            var lists = ['sortable-list-1', 'sortable-list-2', 'sortable-list-3'];
-            for (var i = 0; i < lists.length; i++) {
-                var list = document.getElementById(lists[i]);
-                if (list.childElementCount === 0) {
-                    list.appendChild(item);
-                    break;
-                }
-            }
-        }
-
-        function getRankOrder() {
-            var rankOrder = {};
-            ['sortable-list-1', 'sortable-list-2', 'sortable-list-3'].forEach((listId, index) => {
-                var list = document.getElementById(listId);
-                if (list.childElementCount > 0) {
-                    var item = list.firstElementChild.getAttribute('data-value');
-                    rankOrder[item] = index + 1;
-                }
-            });
-            alert('順位: ' + JSON.stringify(rankOrder));
-        }
     </script>
 </body>
 </html>

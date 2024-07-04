@@ -296,6 +296,13 @@ def logout():
 @app.route('/test')
 def testpage():
     return render_template('test.html')
+
+@app.route('/api/hello')
+def apitest():
+    print('get_request')
+    return jsonify({'message':'API連携成功'})
+
+
     
 
 if __name__ == '__main__':
