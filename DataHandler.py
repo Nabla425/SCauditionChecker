@@ -18,7 +18,7 @@ db_name = os.getenv('DB_NAME')
 connection_string = f'mysql+pymysql://{db_user}:{db_password}@{db_host}/{db_name}'
 
 # 適切なDB接続情報を指定してエンジンを作成します。
-engine = create_engine('mysql+pymysql://root:AdminAdmin@localhost/scdb',echo=False)
+engine = create_engine(connection_string,echo=False)
 
 # ベースクラスの作成
 Base = declarative_base()
@@ -42,7 +42,7 @@ def push2DB(entity,FlaskSession):
             existing_record = session.query(Entity.ProduceCard).filter_by(card_name=entity.card_name).first()
         else:
             return "サポート, PWeapon, またはProduceCardを入力してください"
-        
+
         entity.created_by = FlaskSession['username']
         # print(existing_record)
 
@@ -64,7 +64,7 @@ def push2DB(entity,FlaskSession):
     except Exception as e:
         session.rollback()  # エラー発生時にはロールバックしてセッションをクリーンアップ
         return f"エラーが発生しました: {str(e)}"
-    
+
 def pushPassive2DB(input,session):
     entity = Entity.Passive()
     entity.cardname = input['card_name']
@@ -85,7 +85,7 @@ def pushPassive2DB(input,session):
     if supportEnt:
         entity.support.append(supportEnt)
     return push2DB(entity,session)
-    
+
 def set_passive_from_entity(entity_list):
     from transfer_class import Passive
     passive_list = []
@@ -116,41 +116,41 @@ def pushDeck(settings, Flasksession):
     entity = Entity.Deck()
     entity.name = settings['deck_name']
     entity.created_by = Flasksession['username']
-    
+
     entity.produce_card = session.query(Entity.ProduceCard).filter_by(idol=settings['produce_idol'], card_name=settings['produce_card']).first()
     if not entity.produce_card:
         return 'プロデュースカードが見つかりません'
-    
+
     entity.supports = []
     for support in settings['support_list']:
         support_entity = session.query(Entity.Support).filter_by(idol=support['idol_name'], name=support['card_name'], totu=support['totu']).first()
         if not support_entity:
             return f"サポートカードが見つかりません: {support['idol_name']}, {support['card_name']}, {support['totu']}"
         entity.supports.append(support_entity)
-    
+
     if len(entity.supports) != 4:
         return 'サポートカードの数が間違っています'
-    
+
     entity.pweapons = []
     for Pweapon in settings['pweapon_list']:
         Pweapon_entity = session.query(Entity.PWeapon).filter_by(name=Pweapon['card_name']).first()
         if not Pweapon_entity:
             return f"取得札が見つかりません: {Pweapon['card_name']}"
         entity.pweapons.append(Pweapon_entity)
-    
+
     if len(entity.pweapons) != 4:
         return '取得札の数が間違っています'
-    
+
     entity.passives = []
     for passive in settings['aquired_passive']:
         passive_entity = session.query(Entity.Passive).filter_by(cardname=passive['card_name'], passive_type=passive['type']).first()
         if not passive_entity:
             return f"パッシブが見つかりません: {passive['card_name']}, {passive['type']}"
         entity.passives.append(passive_entity)
-    
+
     session.add(entity)
     session.commit()
-    
+
     return '登録完了'
 
 def setDeck(id):
@@ -158,7 +158,7 @@ def setDeck(id):
     entity = session.query(Entity.Deck).filter_by(id=id).first()
     deck = {}
     passive_list = []
-    produce_card = entity.produce_card    
+    produce_card = entity.produce_card
     passives = entity.passives
     deck['produce_idol'] = produce_card.idol
     deck['produce_card'] = produce_card.card_name
@@ -176,7 +176,7 @@ def setDeck(id):
                 'val':None,'name':support.name + '(S)'
             })
         deck['support_list'].append(sup_dict)
-    
+
     deck['pweapon_list'] = []
     for p in entity.pweapons:
         p_dict = {
@@ -201,7 +201,7 @@ def setDeck(id):
         elif p.link_type == 'no_link':p_dict['link_contents'] = 'no_link'
         else:return 'error'
         deck['pweapon_list'].append(p_dict)
-        
+
     deck['aquired_passive']=[]
     for pa in entity.passives:
         buffrate = [[b.color,b.rate] for b in pa.passiverate_relations]
@@ -213,7 +213,7 @@ def setDeck(id):
         deck['aquired_passive'].append(p.get_dict())
         passive_list.append(
             {'name':p._name,'rest':p._times,'isActive':False,'text':p.get_text(),'short_name':p._short_name}
-            )    
+            )
 
     return deck,passive_list
 
@@ -222,7 +222,7 @@ def fetchPweaponPassive(deck):
     # print(deck)
     all_pweapon = []
     all_passive = []
-    for idol,name in deck: 
+    for idol,name in deck:
         pweapons = session.query(PWeapon).filter(PWeapon.name.like(name + '%')).all()
         for p in pweapons:
             p_dict = {
@@ -254,7 +254,8 @@ def fetchPweaponPassive(deck):
     return {'all_passive':all_passive,'all_pweapon':all_pweapon}
 
 
-    
+
 def readAll(Entity):
     return session.query(Entity).all()
+
 

@@ -1,9 +1,32 @@
-from sqlalchemy import create_engine, Column, Integer, String, Float, TIMESTAMP, ForeignKey, CheckConstraint, Table,func
+from sqlalchemy import create_engine, Column, Integer, String, Float, TIMESTAMP, ForeignKey, CheckConstraint, Table, func
 from sqlalchemy.orm import relationship
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
+from dotenv import load_dotenv
+import os
 
 Base = declarative_base()
+
+# .envファイルの環境変数を読み込む
+load_dotenv()
+
+# 環境変数からデータベース接続情報を取得する
+db_user = os.getenv('DB_USER')
+db_password = os.getenv('DB_PASSWORD')
+db_host = os.getenv('DB_HOST')
+db_name = os.getenv('DB_NAME')
+
+connection_string = f'mysql+pymysql://{db_user}:{db_password}@{db_host}/{db_name}'
+
+engine = create_engine(connection_string, echo=False,pool_recycle=280)
+# セッションを作成します。
+Session = sessionmaker(bind=engine)
+session = Session()
+
+
+# ベースクラスの作成
+Base = declarative_base()
+Base.metadata.create_all(engine)
 
 # 中間テーブルの定義
 deck_passive = Table('deck_passive', Base.metadata,
@@ -141,17 +164,28 @@ class Deck(Base):
     supports = relationship("Support", secondary=deck_support, back_populates="decks", cascade="save-update, merge, refresh-expire, expunge")
     pweapons = relationship("PWeapon", secondary=deck_pweapon, back_populates="decks", cascade="save-update, merge, refresh-expire, expunge")
 
-    
-# 適切なDB接続情報を指定してエンジンを作成します。
-engine = create_engine('mysql+pymysql://root:AdminAdmin@localhost/scdb')
+class Users(Base):
+    __tablename__ = 'users'
+    username = Column(String(20), primary_key=True, nullable=False, unique=True)
+    password = Column(String(255), nullable=False)
+    oath_lv = Column(Integer, nullable=False, default=0)
+    created = Column(TIMESTAMP, nullable=False, server_default=func.current_timestamp())
 
-# セッションを作成します。
-Session = sessionmaker(bind=engine)
-session = Session()
 
-Base.metadata.create_all(engine)
 
 # セッションを閉じます。
 session.close()
+
+try:
+    # エンジンを作成して接続を試みる
+    engine = create_engine(connection_string)
+    with engine.connect() as connection:
+        # 接続が成功した場合、メッセージを表示する
+        print("Database connection successful!")
+
+except Exception as e:
+    # エラーが発生した場合、エラーメッセージを表示する
+    print(f"Database connection error: {str(e)}")
 print("Done Database Prepare")
+
 

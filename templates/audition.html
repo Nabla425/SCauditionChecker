@@ -88,7 +88,7 @@
                 </label>
             </div>
             <input type="radio"  id='memory' name="weapon" value="M0" required>
-            <label for="memory">思い出アピール [Lv[[settings.memory.lv]]] 
+            <label for="memory">思い出アピール [Lv[[settings.memory.lv]]]
                 <span class="islink" v-if = 'settings.memory.isLink'>LINK</span>
         </div>
         <div class='items'>
@@ -98,13 +98,13 @@
                     <div v-for='(judge,col) in situation.judge_dict'>
                     <input type="radio" :id="col" name="aim" :value="col" checked required>
                     <label :for="col">
-                        <span class="judge_name">[[col]] </span>   
+                        <span class="judge_name">[[col]] </span>
                         <span class="trend">流行:[[ settings.trend[col] ]]位</span>
                         <p><meter min="0" :max="judge.Max_HP" :value="judge.HP"></meter>[[judge.HP]]</p>
                     </label>
                     </div>
                 </div>
-                
+
                 <div class="choose_critical">
                     <p class="">判定</p>
                     <input type="radio" id="Perfect" name="critical" value=1.5 checked required>
@@ -118,14 +118,14 @@
                     <input id='submit' class='btn' type="submit">
                 </div>
             </div>
-            
+
             <p>バフ</p>
             <div id='buff_box'>
             <ul>
                 <li v-for="buff in situation.buff_list">
                     [[buff.color]][[buff.buff]]%UP [[buff.turn]]ターン
                 </li>
-            </ul>   
+            </ul>
             </div>
             <p>パッシブ内容</p>
             <div id="passive_box">
@@ -150,7 +150,7 @@
     <!-- サイドバー -->
     <div class="sidebar right" id="right-sidebar">
         <div id="side_deck_bock">
-            <p>編成  
+            <p>編成
                 <button type="button"  @click="editing = true" v-if="!editing">変更</button>
                 <button type="button" @click="saveSelection" v-else>決定</button>
             </p>
@@ -182,19 +182,19 @@
                     </div>
                 </div>
             </form>
-        
+
             <div id="deck_detail">
                 <div>
                     <p>取得札</p>
                     <ul class="side_weapon" v-for="pweapon in settings.pweapon_list" :key="pweapon.card_name">
                         <li>[[pweapon.card_name]]
-                    </ul> 
+                    </ul>
                 </div>
                 <div>
                     <p>取得パッシブ</p>
                     <ul class="side_weapon" v-for="passive in situation.passive_list">
                         <li>[[passive.short_name]]
-                    </ul> 
+                    </ul>
             </div>
             </div>
             <input type="button" class="btn" value='編集する' @click="editPage">
@@ -202,10 +202,10 @@
         <div id="log_box">
             <p>ログ</p>
             <div class='log' v-for="log in situation.log">[[log]]</div>
-        </div>  
+        </div>
     </div>
     <!-- <pre>[[settings.trend]]</pre> -->
-    
+
     <!-- リザルト画面 -->
     <div id="endScreen">
         <div class="end-screen-content">
@@ -241,12 +241,12 @@
             <div class="chart-container">
                 <div v-for="(judge, color) in situation.judge_dict" :key="color" class="chart">
                     <canvas class='Piechart' :id="color+'PieChart'" ></canvas>
-                    <p>[[color]]</p> 
+                    <p>[[color]]</p>
                     <p v-for='(ATK, idol) in judge.score.appeal' :key="idol">
                         [[idol]]: [[ATK]]
                     </p>
                 </div>
-            </div>                       
+            </div>
         </div>
         <div class="buttons">
             <button id="backButton" class='back-btn' @click="back">1ターン戻る</button>

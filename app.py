@@ -1,13 +1,33 @@
-from flask import Flask, render_template,request,redirect,session,jsonify,url_for,flash
+import os
+from flask_sqlalchemy import SQLAlchemy
+from sqlalchemy import text
+from flask import Flask, render_template,request,redirect,session,jsonify,url_for,flash, jsonify
 import Init,Game,util
 from transfer_class import Passive
 from flask_bcrypt import Bcrypt
-from flask_sqlalchemy import SQLAlchemy
 import DataHandler as DH
 from transfer_class import Support,P_weapon
 import Entity
-
+import os
 from transfer_class import Settings,Situation,Memory
+
+
+app = Flask(__name__)
+
+app.secret_key = 'test'
+
+# 環境変数の取得
+db_user = os.getenv('DB_USER', 'Nabla')
+db_password = os.getenv('DB_PASSWORD', 'AdminAdmin')
+db_host = os.getenv('DB_HOST', 'Nabla.mysql.pythonanywhere-services.com')
+db_name = os.getenv('DB_NAME', 'Nabla$scdb')
+
+# データベース接続情報の設定
+app.config['SQLALCHEMY_DATABASE_URI'] = f'mysql+pymysql://{db_user}:{db_password}@{db_host}/{db_name}'
+app.config['SQLALCHEMY_ENGINE_OPTIONS'] = {'pool_recycle': 280}
+
+db = SQLAlchemy(app)
+bcrypt = Bcrypt(app)
 
 #jinja2とvuejsでデリミタが重複しているので変更
 class CustomFlask(Flask):
@@ -21,38 +41,15 @@ class CustomFlask(Flask):
     comment_end_string='#)',
 ))
 
-app = Flask(__name__)
-app.secret_key = 'test'
-app.config['JSON_SORT_KEYS'] = False
-app.secret_key = 'test'
-app.config['JSON_SORT_KEYS'] = False
-app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://root:AdminAdmin@localhost/scdb'
-app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-app.config['SESSION_TYPE'] = 'filesystem'
-app.config['SESSION_PERMANENT'] = False
-# MySQLの設定
-# SQLAlchemyの設定
-app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://root:AdminAdmin@localhost/scdb'
-app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
-
-db = SQLAlchemy(app)
-bcrypt = Bcrypt(app)
-
-class Users(db.Model):
-    username = db.Column(db.String(20), primary_key=True, nullable=False, unique=True)
-    password = db.Column(db.String(255), nullable=False)
-    oath_lv = db.Column(db.Integer, nullable=False, default=0)
-    created = db.Column(db.TIMESTAMP, nullable=False, server_default=db.func.current_timestamp())
-
-@app.route("/",methods=['GET','POST'])
+@app.route("/", methods=['GET', 'POST'])
 def index():
-    return render_template("index.html")
+    return render_template('index.html')
 
 @app.route("/audition",methods=['GET','POST'])
 def audition():
     return render_template('audition.html')
-    
+
 @app.route("/api/turn",methods=["GET","POST"])
 def exe_one_turn():
     print('get request!!!!!')
@@ -73,13 +70,10 @@ def audition_init():
     print('initing!!!!!!!!!!!!!')
     audition_name = '歌姫楽宴'
     rival_list,judge_dict = Init.init_audition(audition_name)
-    support_keys = ['"櫻木真乃駅線上の日常4凸"','"風野灯織水面を仰いで海の底4凸"','"小宮果穂反撃の狼煙をあげよ！4凸"','"園田智代子kimagure全力ビート！4凸"']
-    support_list = []
-    for key in support_keys:
-        support_list.append(Init.set_support(key))
+    support_list = Init.set_support()
     trend = {'Vo':1,'Da':2,'Vi':3}
     pweapon_list = Init.set_pweapon()
-    
+
     # test_passive
     aquired_passive = [
         Passive.passive("きゅんコメ","金1",'きゅんコメ金1',3,40,Passive.history_requirement,[["Vi",75]],["櫻木真乃","風野灯織"]),
@@ -90,7 +84,7 @@ def audition_init():
         {'name':p._name,'rest':p._times,'isActive':False,
             'text':p.get_text(),'short_name':p._short_name} for p in aquired_passive
     ]
-    
+
     settings = Settings.settings(
         support_list=support_list,pweapon_list=pweapon_list,audition_name=audition_name,
         week=29,trend=trend,rival_list=rival_list,idol='八宮めぐる',produce_card='きゅんコメ',memory=Memory.memory(idol_name='八宮めぐる'),
@@ -113,7 +107,7 @@ def reload_audition():
     settings_in['rival_list'] = [r.info for r in rival_list]
     situation_in['judge_dict'] = {k:v.info for (k,v) in judge_dict.items()}
     situation_in['passive_list'] = passive_list
-    
+
     settings = Settings.settings()
     settings.set_from_json(settings_in)
     situation = Situation.situation()
@@ -139,7 +133,6 @@ def pushSupport():
 def pushPcard():
     input = dict(request.json)
     # print(dict(request.json))
-    import Entity
     entity = Entity.ProduceCard()
     entity.idol = input['idol']
     entity.card_name = input['cardname']
@@ -175,14 +168,13 @@ def get_passive():
 
 @app.route('/api/all_support')
 def all_support():
-    import Entity
     all_supports = []
     support_entities = DH.session.query(Entity.Support).filter_by(created_by='admin').all().copy()
     if len(session)>0:
         username = session['username']
         if username != 'admin':
             support_entities += DH.session.query(Entity.Support).filter_by(created_by=username).all().copy()
-        
+
     for support in support_entities:
         sup_dict = {
         'card_type':'S','idol_name':support.idol,'card_name':support.name,
@@ -201,7 +193,6 @@ def all_support():
 
 @app.route("/api/all_deck")
 def get_decks():
-    import Entity
     deck_list = []
     deck_list += DH.session.query(Entity.Deck).filter_by(created_by='admin').all().copy()
     if len(session)>0:
@@ -218,7 +209,7 @@ def get_decks():
         'support3': {'idol': deck.supports[2].idol, 'name': deck.supports[2].name, 'totu': deck.supports[2].totu} if len(deck.supports) > 2 else {'idol': '櫻木真乃', 'name': '駅線上の日常', 'totu': 4},
         'support4': {'idol': deck.supports[3].idol, 'name': deck.supports[3].name, 'totu': deck.supports[3].totu} if len(deck.supports) > 3 else {'idol': '櫻木真乃', 'name': '駅線上の日常', 'totu': 4}
     } for deck in deck_list]
-    
+
     DH.session.close()
     return jsonify(ret_list)
 
@@ -231,7 +222,7 @@ def set_deck(id):
 def delete_deck(id):
     from Entity import Deck,deck_passive,deck_pweapon,deck_support
     delete_deck = DH.session.query(Deck).filter_by(id=id).first()
-    
+
     DH.session.query(deck_pweapon).filter(deck_pweapon.c.deck_id == id).delete()
     DH.session.query(deck_support).filter(deck_support.c.deck_id == id).delete()
     DH.session.query(deck_passive).filter(deck_passive.c.deck_id == id).delete()
@@ -253,31 +244,33 @@ def edit():
 #ログイン関係
 @app.route('/register', methods=['GET', 'POST'])
 def register():
+    from Entity import Users
     if request.method == 'POST':
         username = request.form['username']
         password = request.form['password']
         hashed_password = bcrypt.generate_password_hash(password).decode('utf-8')
         # ユーザーが既に存在するかチェック
-        existing_user = Users.query.filter_by(username=username).first()
+        existing_user = DH.session.query(Users).filter_by(username=username).first()
         if existing_user:
             flash('ユーザ名はすでに登録されています。', 'error')
-            return redirect(url_for('register'))  
+            return redirect(url_for('register'))
         new_user = Users(username=username, password=hashed_password)
         db.session.add(new_user)
         db.session.commit()
-        
+
         return redirect(url_for('login'))
-    
+
     return render_template('/register.html')
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
+    from Entity import Users
     if request.method == 'POST':
         username = request.form['username']
         password_candidate = request.form['password']
-        
-        user = Users.query.filter_by(username=username).first()
-        
+
+        user = DH.session.query(Users).filter_by(username=username).first()
+
         if user and bcrypt.check_password_hash(user.password, password_candidate):
             session['logged_in'] = True
             session['username'] = username
@@ -285,7 +278,7 @@ def login():
             return redirect(url_for('audition'))
         else:
             return 'Invalid username or password'
-    
+
     return render_template('login.html')
 
 @app.route('/logout')
@@ -303,11 +296,9 @@ def apitest():
     return jsonify({'message':'API連携成功'})
 
 
-    
+
 
 if __name__ == '__main__':
     app.run(debug=True)
     # os.environ['FLASK_DEBUG'] = '1'
     session['logged_in'] = False
-
-
